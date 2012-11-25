@@ -14,3 +14,15 @@ Kathune runs in three concurrent phases, which are summarized as:
 2. Process the parsed data, determining which content is relevant.
 
 3. Rank the relevant content, flagging it for availaibilty via a front-end search.
+
+==========
+Usefulness
+==========
+
+I don't know how useful this will be, since Kathune is highly tailored for a specific set of business
+rules, however, it may serve to provide a more broad understanding of the architecture behind a
+multi-threaded CFML application.
+
+Also, in an effort to eat my own dog food, I'm taking this opportunity to clean it up and implement
+more consistent best practices, since I write a blog on the subject, (http://cfbestpractices.blogspot.com)
+and should not be excluded from the methods I preach.
