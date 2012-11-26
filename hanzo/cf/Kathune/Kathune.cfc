@@ -26,7 +26,7 @@
             variables.tentacles = ArrayNew(1);
             variables.NewRecruitQueue = ArrayNew(1);
             variables.RecruiterSearch = StructNew();
-            variables.analysis = CreateObject('component', 'com.hanzo.cf.Kathune.AnalysisService');
+            variables.analysis = CreateObject( 'component', 'com.hanzo.cf.Kathune.AnalysisService' );
 
             variables.oAuthToken = '';
             variables.oAuthSecret = '';
@@ -35,7 +35,7 @@
             variables.screen_name = '';
             variables.user_id = '';
 
-            variables.twitter = CreateObject('component', 'com.coldfumonkeh.monkehTweet')
+            variables.twitter = CreateObject( 'component', 'com.coldfumonkeh.monkehTweet' )
                 .init(
                     consumerKey = 'YOURTWITTERCONSUMERKEY',
                     consumerSecret = 'YOURTWITTERCONSUMERSECRET',
@@ -50,7 +50,7 @@
         </cfscript>
 
         <!--- read config, convert to xml object --->
-        <cffile action="read" file="#expandPath(arguments.xmlPath)#" variable="configFile" />
+        <cffile action="read" file="#expandPath( arguments.xmlPath )#" variable="configFile" />
 
         <cfset xmlObj = XmlParse( configFile ) />
 
@@ -65,13 +65,14 @@
         <cfset settings.dsn = variables.dsn />
         <cfset settings.user_agent = getUserAgent() />
 
-        <cfloop from="1" to="#arrayLen(tentacleArray)#" index="i">
+        <cfloop from="1" to="#ArrayLen( tentacleArray )#" index="i">
             <cfscript>
-                tent = structNew();
+                tent = StructNew();
 
                 settings.SiteUUID = tentacleArray[i].XmlAttributes.SiteUUID;
 
-                tent = CreateObject( 'component','com.hanzo.cf.Kathune.tentacle.#tentacleArray[i].XmlText#' ).init( settings );
+                tent = CreateObject( 'component', 'com.hanzo.cf.Kathune.tentacle.#tentacleArray[i].XmlText#' )
+                    .init( settings );
 
                 ArrayAppend( variables.tentacles, tent );
             </cfscript>
@@ -79,48 +80,48 @@
             <cflog file="Kathune" type="information" text="init() - Loaded com.hanzo.cf.Kathune.tentacle.#tentacleArray[i].XmlText# into memory (SiteUUID: #settings.SiteUUID#)" />
         </cfloop>
 
-        <cflog file="Kathune" type="information" text="init() - Successfully loaded #ArrayLen(variables.tentacles)# tentacles into memory" />
+        <cflog file="Kathune" type="information" text="init() - Successfully loaded #ArrayLen( variables.tentacles )# tentacles into memory" />
 
         <cfreturn this />
     </cffunction>
 
-	<cffunction name="ResetRecruiterSearch" returntype="void" access="public" output="false">
-		<cfargument name="searchData" type="struct" required="true" />
+    <cffunction name="ResetRecruiterSearch" returntype="void" access="public" output="false">
+        <cfargument name="searchData" type="struct" required="true" />
 
-		<cfset var tKey = 0 />
+        <cfset var tKey = 0 />
 
-		<!--- if the struct is empty, init it first --->
-		<cfif StructIsEmpty(arguments.searchData)>
-			<cfset StructInsert( arguments.searchData, 'us', '' ) />
-			<cfset StructInsert( arguments.searchData, 'eu-en', '' ) />
-			<cfset StructInsert( arguments.searchData, 'alliance', '' ) />
-			<cfset StructInsert( arguments.searchData, 'horde', '' ) />
-			<cfset StructInsert( arguments.searchData, 'pve', '' ) />
-			<cfset StructInsert( arguments.searchData, 'pvp', '' ) />
-			<cfset StructInsert( arguments.searchData, 'deth', '' ) />
-			<cfset StructInsert( arguments.searchData, 'drui', '' ) />
-			<cfset StructInsert( arguments.searchData, 'hunt', '' ) />
-			<cfset StructInsert( arguments.searchData, 'mage', '' ) />
-			<cfset StructInsert( arguments.searchData, 'pala', '' ) />
-			<cfset StructInsert( arguments.searchData, 'prie', '' ) />
-			<cfset StructInsert( arguments.searchData, 'rogu', '' ) />
-			<cfset StructInsert( arguments.searchData, 'sham', '' ) />
-			<cfset StructInsert( arguments.searchData, 'warl', '' ) />
-			<cfset StructInsert( arguments.searchData, 'warr', '' ) />
-			<cfset StructInsert( arguments.searchData, 'idiotFilter', '' ) />
-			<cfset StructInsert( arguments.searchData, 'keywords', StructNew() ) />
-		</cfif>
+        <!--- if the struct is empty, init it first --->
+        <cfif StructIsEmpty( arguments.searchData )>
+            <cfset StructInsert( arguments.searchData, 'us', '' ) />
+            <cfset StructInsert( arguments.searchData, 'eu-en', '' ) />
+            <cfset StructInsert( arguments.searchData, 'alliance', '' ) />
+            <cfset StructInsert( arguments.searchData, 'horde', '' ) />
+            <cfset StructInsert( arguments.searchData, 'pve', '' ) />
+            <cfset StructInsert( arguments.searchData, 'pvp', '' ) />
+            <cfset StructInsert( arguments.searchData, 'deth', '' ) />
+            <cfset StructInsert( arguments.searchData, 'drui', '' ) />
+            <cfset StructInsert( arguments.searchData, 'hunt', '' ) />
+            <cfset StructInsert( arguments.searchData, 'mage', '' ) />
+            <cfset StructInsert( arguments.searchData, 'pala', '' ) />
+            <cfset StructInsert( arguments.searchData, 'prie', '' ) />
+            <cfset StructInsert( arguments.searchData, 'rogu', '' ) />
+            <cfset StructInsert( arguments.searchData, 'sham', '' ) />
+            <cfset StructInsert( arguments.searchData, 'warl', '' ) />
+            <cfset StructInsert( arguments.searchData, 'warr', '' ) />
+            <cfset StructInsert( arguments.searchData, 'idiotFilter', '' ) />
+            <cfset StructInsert( arguments.searchData, 'keywords', StructNew() ) />
+        </cfif>
 
-		<!--- reset the values --->
-		<cfloop list="#StructKeyList(arguments.searchData)#" index="tKey">
-			<cfif tKey IS NOT 'keywords'>
-				<cfset arguments.searchData[tKey] = 0 />
-			</cfif>
-		</cfloop>
+        <!--- reset the values --->
+        <cfloop list="#StructKeyList( arguments.searchData )#" index="tKey">
+            <cfif tKey IS NOT 'keywords'>
+                <cfset arguments.searchData[tKey] = 0 />
+            </cfif>
+        </cfloop>
 
-		<!--- empty out keywords --->
-		<cfset StructClear( arguments.searchData.keywords ) />
-	</cffunction>
+        <!--- empty out keywords --->
+        <cfset StructClear( arguments.searchData.keywords ) />
+    </cffunction>
 
 	<cffunction name="PreyOnTheWeak" returntype="void" access="public" output="false"
 				hint="I am the main() function that executes all db maintenance, spidering logic, data refresh, and statistics updates. You. Will. Die.">
