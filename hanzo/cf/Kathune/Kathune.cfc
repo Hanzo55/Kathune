@@ -123,1372 +123,1374 @@
         <cfset StructClear( arguments.searchData.keywords ) />
     </cffunction>
 
-	<cffunction name="PreyOnTheWeak" returntype="void" access="public" output="false"
-				hint="I am the main() function that executes all db maintenance, spidering logic, data refresh, and statistics updates. You. Will. Die.">
+    <cffunction name="PreyOnTheWeak" returntype="void" access="public" output="false"
+            hint="I am the main() function that executes all db maintenance, spidering logic, data refresh, and statistics updates. You. Will. Die.">
 
-		<cfscript>
-		// Kathune biz logic:
+        <cfscript>
+        // Kathune biz logic:
 
-		// 1. todo: perform db cleanup/maintenance (if necessary) -todo
-		//WashMouth();
+        // 1. todo: perform db cleanup/maintenance (if necessary) -todo
+        //WashMouth();
 
-		// 2. parse all of the recruitment data for all sites (ExtendTentacles) and update by forum post titles/ids
-		ExtendTentacles();
+        // 2. parse all of the recruitment data for all sites (ExtendTentacles) and update by forum post titles/ids
+        ExtendTentacles();
 
-		// 3. review the bottom X amount of entries in the DB that have no postBodies, and fetch/update them, along with armoryURLs and any additional flags to further categorize the post
-		//Feed( variables.httpFetchMaximum );
+        // 3. review the bottom X amount of entries in the DB that have no postBodies, and fetch/update them, along with armoryURLs and any additional flags to further categorize the post
+        //Feed( variables.httpFetchMaximum );
 
-		// 4. perform a final pass on bottom X entries with a score of 1.0 and re-calculate the score, using armory if needed
-		//Digest( variables.httpFetchMaximum );
-		</cfscript>
-	</cffunction>
+        // 4. perform a final pass on bottom X entries with a score of 1.0 and re-calculate the score, using armory if needed
+        //Digest( variables.httpFetchMaximum );
+        </cfscript>
+    </cffunction>
 
     <cffunction name="Glare" returntype="void" access="public" output="false"
-				hint="I am responsible for announcing newly discovered recruits via Twitter.">
-		<cfargument name="emptyQueue" type="boolean" required="false" default="true" />
-		<cfargument name="emailXML" type="boolean" required="false" default="false" />
-
-		<cfset var theRecruit = 0 />
-		<cfset var countDK = 0 />
-		<cfset var countDruid = 0 />
-		<cfset var countHunter = 0 />
-		<cfset var countMage = 0 />
-		<cfset var countPaladin = 0 />
-		<cfset var countPriest = 0 />
-		<cfset var countRogue = 0 />
-		<cfset var countShaman = 0 />
-		<cfset var countWarlock = 0 />
-		<cfset var countWarrior = 0 />
-		<cfset var middleString = '' />
-		<cfset var finalString = '' />
-		<cfset var xmlResponse = '' />
-
-		<!--- step 1. Befriend All --->
-
-		<!--- step 2. Look at the NewRecruitQueue. Are there entries? If so, build a message and update via Twitter --->
-		<cfif ArrayLen( variables.NewRecruitQueue )>
-			<cfloop array="#variables.NewRecruitQueue#" index="theRecruit">
-				<cfif ( theRecruit.isDeathKnight[1] )>
-					<cfset countDK++ />
-				</cfif>
-				<cfif ( theRecruit.isDruid[1] )>
-					<cfset countDruid++ />
-				</cfif>
-				<cfif ( theRecruit.isHunter[1] )>
-					<cfset countHunter++ />
-				</cfif>
-				<cfif ( theRecruit.isMage[1] )>
-					<cfset countMage++ />
-				</cfif>
-				<cfif ( theRecruit.isPaladin[1] )>
-					<cfset countPaladin++ />
-				</cfif>
-				<cfif ( theRecruit.isPriest[1] )>
-					<cfset countPriest++ />
-				</cfif>
-				<cfif ( theRecruit.isRogue[1] )>
-					<cfset countRogue++ />
-				</cfif>
-				<cfif ( theRecruit.isShaman[1] )>
-					<cfset countShaman++ />
-				</cfif>
-				<cfif ( theRecruit.isWarlock[1] )>
-					<cfset countWarlock++ />
-				</cfif>
-				<cfif ( theRecruit.isWarrior[1] )>
-					<cfset countWarrior++ />
-				</cfif>
-			</cfloop>
-
-			<!--- build middle part of the string --->
-			<cfset middleString = ListAppendClass( middleString, 'Death Knight', countDK ) />
-			<cfset middleString = ListAppendClass( middleString, 'Druid', countDruid ) />
-			<cfset middleString = ListAppendClass( middleString, 'Hunter', countHunter ) />
-			<cfset middleString = ListAppendClass( middleString, 'Mage', countMage ) />
-			<cfset middleString = ListAppendClass( middleString, 'Paladin', countPaladin ) />
-			<cfset middleString = ListAppendClass( middleString, 'Priest', countPriest ) />
-			<cfset middleString = ListAppendClass( middleString, 'Rogue', countRogue ) />
-			<cfset middleString = ListAppendClass( middleString, 'Shaman', countShaman ) />
-			<cfset middleString = ListAppendClass( middleString, 'Warlock', countWarlock ) />
-			<cfset middleString = ListAppendClass( middleString, 'Warrior', countWarrior ) />
-
-			<cfif ListLen( middleString,'|' ) GT 1>
-				<cfset middleString = ListInsertAt( middleString, ListLen( middleString,'|' ), 'and', '|' ) />
-				<cfset middleString = ReplaceNoCase( middleString, '|and|', ' and ', 'ONE' ) />
-				<cfset middleString = ListChangeDelims( middleString, ', ', '|' ) />
-			</cfif>
-
-			<cfset finalString = GetStartMessage() & " " & middleString & ". " & GetEndMessage() />
-
-			<!--- send message --->
-			<cfif Len( Trim ( middleString ) )>
-				<cfset xmlResponse = variables.twitter.postUpdate( finalString ) />
-			</cfif>
-
-			<!--- Uncomment this to receive XML-based error messages from the Twitter API
-			<cfif ( arguments.emailXML ) and Len( xmlResponse )>
-				<cfmail to="ERROR_EMAIL_TO@NOEMAIL.COM" from="ERROR_EMAIL_FROM@NOEMAIL.COM" subject="Kathune: Debug">#toString(xmlResponse)#</cfmail>
-			</cfif> --->
-
-			<cfif ( arguments.emptyQueue )>
-				<!--- step 3. Empty the Queue. --->
-				<cfset ArrayClear( variables.NewRecruitQueue ) />
-			</cfif>
-
-		</cfif>
-
-	</cffunction>
-
-	<cffunction name="Thrash" returntype="void" access="public" output="false"
-				hint="I am responsible for announcing search results via Twitter.">
-		<cfargument name="resetQueue" type="boolean" required="false" default="true" />
-		<cfargument name="emailXML" type="boolean" required="false" default="false" />
-
-		<cfset var tKey = 0 />
-		<cfset var middleString = '' />
-		<cfset var finalString = '' />
-		<cfset var xmlResponse = '' />
+            hint="I am responsible for announcing newly discovered recruits via Twitter.">
+        <cfargument name="emptyQueue" type="boolean" required="false" default="true" />
+        <cfargument name="emailXML" type="boolean" required="false" default="false" />
+
+        <cfset var theRecruit = 0 />
+        <cfset var countDK = 0 />
+        <cfset var countDruid = 0 />
+        <cfset var countHunter = 0 />
+        <cfset var countMage = 0 />
+        <cfset var countPaladin = 0 />
+        <cfset var countPriest = 0 />
+        <cfset var countRogue = 0 />
+        <cfset var countShaman = 0 />
+        <cfset var countWarlock = 0 />
+        <cfset var countWarrior = 0 />
+        <cfset var middleString = '' />
+        <cfset var finalString = '' />
+        <cfset var xmlResponse = '' />
+
+        <!--- step 1. Befriend All --->
+
+        <!--- step 2. Look at the NewRecruitQueue. Are there entries? If so, build a message and update via Twitter --->
+        <cfif ArrayLen( variables.NewRecruitQueue )>
+
+            <cfloop array="#variables.NewRecruitQueue#" index="theRecruit">
+                <cfif ( theRecruit.isDeathKnight[1] )>
+                    <cfset countDK++ />
+                </cfif>
+                <cfif ( theRecruit.isDruid[1] )>
+                    <cfset countDruid++ />
+                </cfif>
+                <cfif ( theRecruit.isHunter[1] )>
+                    <cfset countHunter++ />
+                </cfif>
+                <cfif ( theRecruit.isMage[1] )>
+                    <cfset countMage++ />
+                </cfif>
+                <cfif ( theRecruit.isPaladin[1] )>
+                    <cfset countPaladin++ />
+                </cfif>
+                <cfif ( theRecruit.isPriest[1] )>
+                    <cfset countPriest++ />
+                </cfif>
+                <cfif ( theRecruit.isRogue[1] )>
+                    <cfset countRogue++ />
+                </cfif>
+                <cfif ( theRecruit.isShaman[1] )>
+                    <cfset countShaman++ />
+                </cfif>
+                <cfif ( theRecruit.isWarlock[1] )>
+                    <cfset countWarlock++ />
+                </cfif>
+                <cfif ( theRecruit.isWarrior[1] )>
+                    <cfset countWarrior++ />
+                </cfif>
+            </cfloop>
+
+            <!--- build middle part of the string --->
+            <cfset middleString = ListAppendClass( middleString, 'Death Knight', countDK ) />
+            <cfset middleString = ListAppendClass( middleString, 'Druid', countDruid ) />
+            <cfset middleString = ListAppendClass( middleString, 'Hunter', countHunter ) />
+            <cfset middleString = ListAppendClass( middleString, 'Mage', countMage ) />
+            <cfset middleString = ListAppendClass( middleString, 'Paladin', countPaladin ) />
+            <cfset middleString = ListAppendClass( middleString, 'Priest', countPriest ) />
+            <cfset middleString = ListAppendClass( middleString, 'Rogue', countRogue ) />
+            <cfset middleString = ListAppendClass( middleString, 'Shaman', countShaman ) />
+            <cfset middleString = ListAppendClass( middleString, 'Warlock', countWarlock ) />
+            <cfset middleString = ListAppendClass( middleString, 'Warrior', countWarrior ) />
+
+            <cfif ListLen( middleString,'|' ) GT 1>
+                <cfset middleString = ListInsertAt( middleString, ListLen( middleString,'|' ), 'and', '|' ) />
+                <cfset middleString = ReplaceNoCase( middleString, '|and|', ' and ', 'ONE' ) />
+                <cfset middleString = ListChangeDelims( middleString, ', ', '|' ) />
+            </cfif>
+
+            <cfset finalString = GetStartMessage() & " " & middleString & ". " & GetEndMessage() />
+
+            <!--- send message --->
+            <cfif Len( Trim ( middleString ) )>
+                <cfset xmlResponse = variables.twitter.postUpdate( finalString ) />
+            </cfif>
+
+            <!--- Uncomment this to receive XML-based error messages from the Twitter API
+            <cfif ( arguments.emailXML ) and Len( xmlResponse )>
+                <cfmail to="ERROR_EMAIL_TO@NOEMAIL.COM" from="ERROR_EMAIL_FROM@NOEMAIL.COM" subject="Kathune: Debug">#toString(xmlResponse)#</cfmail>
+            </cfif> --->
+
+            <cfif ( arguments.emptyQueue )>
+                <!--- step 3. Empty the Queue. --->
+                <cfset ArrayClear( variables.NewRecruitQueue ) />
+            </cfif>
+
+        </cfif>
+    </cffunction>
+
+    <cffunction name="Thrash" returntype="void" access="public" output="false"
+            hint="I am responsible for announcing search results via Twitter.">
+        <cfargument name="resetQueue" type="boolean" required="false" default="true" />
+        <cfargument name="emailXML" type="boolean" required="false" default="false" />
+
+        <cfset var tKey = 0 />
+        <cfset var middleString = '' />
+        <cfset var finalString = '' />
+        <cfset var xmlResponse = '' />
 
-		<!--- step 1. look at the recruiter search. is it empty? if not, build up a message --->
-		<cfif NOT RecruiterSearchIsEmpty( variables.RecruiterSearch )>
+        <!--- step 1. look at the recruiter search. is it empty? if not, build up a message --->
+        <cfif NOT RecruiterSearchIsEmpty( variables.RecruiterSearch )>
 
-			<!--- step 2. build middle part of string --->
-			<cfloop list="#StructKeyList(variables.RecruiterSearch)#" index="tKey">
+            <!--- step 2. build middle part of string --->
+            <cfloop list="#StructKeyList( variables.RecruiterSearch )#" index="tKey">
 
-				<cfif tKey IS NOT 'keywords'>
+                <cfif tKey IS NOT 'keywords'>
 
-					<cfif variables.RecruiterSearch[tKey] GT 0>
-						<cfset middleString = ListAppendQueryTerm( middleString, tKey, variables.RecruiterSearch[tKey] ) />
-					</cfif>
+                    <cfif variables.RecruiterSearch[tKey] GT 0>
+                        <cfset middleString = ListAppendQueryTerm( middleString, tKey, variables.RecruiterSearch[tKey] ) />
+                    </cfif>
 
-				</cfif>
+                </cfif>
 
-			</cfloop>
+            </cfloop>
 
-			<!--- step 3. clean up the string so it looks like it was properly written/punctuated --->
-			<cfif ListLen( middleString, '|' ) GT 1>
-				<cfset middleString = ListInsertAt( middleString, ListLen( middleString, '|' ), 'and', '|' ) />
-				<cfset middleString = ReplaceNoCase( middleString, '|and|', ' and ', 'ONE' ) />
-				<cfset middleString = ListChangeDelims( middleString,', ','|' ) />
-			</cfif>
+            <!--- step 3. clean up the string so it looks like it was properly written/punctuated --->
+            <cfif ListLen( middleString, '|' ) GT 1>
+                <cfset middleString = ListInsertAt( middleString, ListLen( middleString, '|' ), 'and', '|' ) />
+                <cfset middleString = ReplaceNoCase( middleString, '|and|', ' and ', 'ONE' ) />
+                <cfset middleString = ListChangeDelims( middleString,', ','|' ) />
+            </cfif>
 
-			<!--- step 4. add the start and end --->
-			<cfset finalString = GetStartSearchMessage() & " " & middleString & ". " & GetEndSearchMessage() />
+            <!--- step 4. add the start and end --->
+            <cfset finalString = GetStartSearchMessage() & " " & middleString & ". " & GetEndSearchMessage() />
 
-			<!--- step 5. send message --->
-			<cfif Len( Trim( middleString ) )>
-				<cfset xmlResponse = variables.twitter.postUpdate( finalString ) />
-			</cfif>
+            <!--- step 5. send message --->
+            <cfif Len( Trim( middleString ) )>
+                <cfset xmlResponse = variables.twitter.postUpdate( finalString ) />
+            </cfif>
 
-			<!--- Uncomment to receive email notifications of xml-style error responses from Twitter API
-			<cfif ( arguments.emailXML ) and Len( xmlResponse )>
-				<cfmail to="ERROR_EMAIL_TO@NOEMAIL.COM" from="ERROR_EMAIL_FROM@NOEMAIL.COM" subject="Kathune: Debug">#toString(xmlResponse)#</cfmail>
-			</cfif> --->
+            <!--- Uncomment to receive email notifications of xml-style error responses from Twitter API
+            <cfif ( arguments.emailXML ) and Len( xmlResponse )>
+                <cfmail to="ERROR_EMAIL_TO@NOEMAIL.COM" from="ERROR_EMAIL_FROM@NOEMAIL.COM" subject="Kathune: Debug">#toString(xmlResponse)#</cfmail>
+            </cfif> --->
 
-			<!--- step 6. Empty the Queue. --->
-			<cfif ( arguments.resetQueue )>
+            <!--- step 6. Empty the Queue. --->
+            <cfif ( arguments.resetQueue )>
+                <cfset ResetRecruiterSearch( variables.RecruiterSearch ) />
+            </cfif>
 
-				<cfset ResetRecruiterSearch( variables.RecruiterSearch ) />
+        </cfif>
+    </cffunction>
 
-			</cfif>
+    <cffunction name="RecruiterSearchIsEmpty" returntype="boolean" access="private" output="false">
+        <cfargument name="searchData" type="struct" required="true" />
 
-		</cfif>
+        <cfset var tKey = 0 />
+        <cfset var isEmpty = true />
 
-	</cffunction>
+        <cfloop list="#StructKeyList( arguments.searchData )#" index="tKey">
 
-	<cffunction name="RecruiterSearchIsEmpty" returntype="boolean" access="private" output="false">
-		<cfargument name="searchData" type="struct" required="true" />
+            <cfif tKey IS NOT 'keywords'>
 
-		<cfset var tKey 		= 0 />
-		<cfset var isEmpty 	= true />
+                <cfif arguments.searchData[tKey] GT 0>
+                    <cfset isEmpty = false />
+                    <cfbreak />
+                </cfif>
 
-		<cfloop list="#StructKeyList( arguments.searchData )#" index="tKey">
-			<cfif tKey IS NOT 'keywords'>
-				<cfif arguments.searchData[tKey] GT 0>
-					<cfset isEmpty = false />
-					<cfbreak />
-				</cfif>
-			</cfif>
-		</cfloop>
+            </cfif>
 
-		<cfreturn isEmpty />
-	</cffunction>
+        </cfloop>
 
-	<cffunction name="GetStartMessage" returntype="string" output="false" access="public">
+        <cfreturn isEmpty />
+    </cffunction>
 
-		<cfreturn 'I found' />
+    <cffunction name="GetStartMessage" returntype="string" output="false" access="public">
 
-	</cffunction>
+        <cfreturn 'I found' />
+    </cffunction>
 
-	<cffunction name="GetEndMessage" returntype="string" output="false" access="public">
+    <cffunction name="GetEndMessage" returntype="string" output="false" access="public">
 
-		<cfreturn '##wow' />
+        <cfreturn '##wow' />
+    </cffunction>
 
-	</cffunction>
+    <cffunction name="GetStartSearchMessage" returntype="string" output="false" access="public">
 
-	<cffunction name="GetStartSearchMessage" returntype="string" output="false" access="public">
+        <cfreturn 'People are looking for' />
+    </cffunction>
 
-		<cfreturn 'People are looking for' />
+    <cffunction name="GetEndSearchMessage" returntype="string" output="false" access="public">
 
-	</cffunction>
+        <cfreturn '##wow' />
+    </cffunction>
 
-	<cffunction name="GetEndSearchMessage" returntype="string" output="false" access="public">
+    <cffunction name="AddSearchToQueue" returntype="void" access="public" output="false"
+            hint="I am responsible for capturing any HTTP requets along with search parameters, to pass to the Twitter queue.">
+        <cfargument name="query_string" type="string" required="false" default="" />
 
-		<cfreturn '##wow' />
+        <cfset var tKey = 0 />
+        <cfset var tValue = 0 />
+        <cfset var tPair = 0 />
+        <cfset var query_struct = StructNew() />
 
-	</cffunction>
+        <!--- if there's no query_string, just return --->
+        <cfif NOT Len( arguments.query_string )>
+            <cfreturn />
+        </cfif>
 
-	<cffunction name="AddSearchToQueue" returntype="void" access="public" output="false"
-				hint="I am responsible for capturing any HTTP requets along with search parameters, to pass to the Twitter queue.">
-		<cfargument name="query_string" type="string" required="false" default="" />
+        <!--- loop over the string and generate a data struct --->
+        <cfloop list="#arguments.query_string#" index="tPair" delimiters="&">
 
-		<cfset var tKey 				= 0 />
-		<cfset var tValue 				= 0 />
-		<cfset var tPair 				= 0 />
-		<cfset var query_struct 	= StructNew() />
+            <cfif ListLen( tPair, '=' ) EQ 2>
 
-		<!--- if there's no query_string, just return --->
-		<cfif NOT Len( arguments.query_string )>
-			<cfreturn />
-		</cfif>
+                <cfset tKey = ListGetAt( tPair, 1, '=' ) />
+                <cfset tValue = ListGetAt( tPair, 2, '=' ) />
 
-		<!--- loop over the string and generate a data struct --->
-		<cfloop list="#arguments.query_string#" index="tPair" delimiters="&">
-			<cfif ListLen( tPair, '=' ) EQ 2>
+                <cftrace var="tValue" text="query_struct:#tKey#" category="AddSearchToQueue:Add">
 
-				<cfset tKey 	= ListGetAt( tPair, 1, '=' ) />
-				<cfset tValue 	= ListGetAt( tPair, 2, '=' ) />
+                <cfset StructInsert( query_struct, tValue, 1, true ) />
 
-				<cftrace var="tValue" text="query_struct:#tKey#" category="AddSearchToQueue:Add">
+            </cfif>
 
-				<cfset StructInsert( query_struct, tValue, 1, true ) />
+        </cfloop>
 
-			</cfif>
-		</cfloop>
+        <cfset IncrementRecruiterSearch( query_struct ) />
+    </cffunction>
 
-		<cfset IncrementRecruiterSearch( query_struct ) />
-	</cffunction>
+    <cffunction name="IncrementRecruiterSearch" returntype="void" access="private" output="false">
+        <cfargument name="query_data" type="struct" required="true" />
 
-	<cffunction name="IncrementRecruiterSearch" returntype="void" access="private" output="false">
-		<cfargument name="query_data" type="struct" required="true">
+        <cfset var tKey = 0 />
+        <cfset var keywordKey = 0 />
 
-		<cfset var tKey = 0 />
-		<cfset var keywordKey = 0 />
+        <!--- loop over the keys in the recruiter struct --->
+        <cfloop list="#StructKeyList( variables.RecruiterSearch )#" index="tKey">
 
-		<!--- loop over the keys in the recruiter struct --->
-		<cfloop list="#StructKeyList(variables.RecruiterSearch)#" index="tKey">
+            <cftrace var="tKey" text="term" category="IncrementRecruiterSearch:Exists">
 
-			<cftrace var="tKey" text="term" category="IncrementRecruiterSearch:Exists">
+            <cfif tKey IS NOT 'keywords'>
 
-			<cfif tKey IS NOT 'keywords'>
+                <!--- see if the key exists in the data structure passed in --->
+                <cfif StructKeyExists( arguments.query_data, tKey )>
 
-				<!--- see if the key exists in the data structure passed in --->
-				<cfif StructKeyExists(arguments.query_data, tKey)>
+                    <cftrace var="tKey" text="term" category="IncrementRecruiterSearch:Add">
 
-					<cftrace var="tKey" text="term" category="IncrementRecruiterSearch:Add">
+                    <!--- yup, so let's increment the count --->
+                    <cfset variables.RecruiterSearch[tKey] += 1 />
 
-					<!--- yup, so let's increment the count --->
-					<cfset variables.RecruiterSearch[tKey] += 1 />
+                </cfif>
 
-				</cfif>
+            </cfif>
 
-			</cfif>
+        </cfloop>
 
-		</cfloop>
+        <!--- and now, loop over keywords (if it exists and is not empty)--->
+        <cfif StructKeyExists( arguments.query_data, 'keywords' ) AND NOT StructIsEmpty( arguments.query_data.keywords )>
 
-		<!--- and now, loop over keywords (if it exists and is not empty)--->
-		<cfif StructKeyExists( arguments.query_data, 'keywords' ) AND NOT StructIsEmpty( arguments.query_data.keywords )>
+            <cfloop list="#StructKeyList( arguments.query_data )#" index="keywordKey">
 
-			<cfloop list="#StructKeyList(arguments.query_data)#" index="keywordKey">
+                <!--- does it exist in the queue? --->
+                <cfif StructKeyExists( variables.RecruiterSearch, keywordKey )>
 
-				<!--- does it exist in the queue? --->
-				<cfif StructKeyExists( variables.RecruiterSearch, keywordKey )>
+                    <!--- it does, so increment the count --->
+                    <cfset variables.RecruiterSearch[keywordKey] += 1 />
 
-					<!--- it does, so increment the count --->
-					<cfset variables.RecruiterSearch[keywordKey] += 1 />
+                <cfelse>
 
-				<cfelse>
+                    <!--- it does not, so add a new reference and set it to 1 --->
+                    <cfset StructInsert( variables.RecruiterSearch, keywordKey, 1, false ) />
 
-					<!--- it does not, so add a new reference and set it to 1 --->
-					<cfset StructInsert( variables.RecruiterSearch, keywordKey, 1, false ) />
+                </cfif>
 
-				</cfif>
+            </cfloop>
 
-			</cfloop>
+        </cfif>
+    </cffunction>
 
-		</cfif>
-	</cffunction>
+    <cffunction name="ListAppendClass" returntype="string" output="false" access="public">
+        <cfargument name="theList" type="string" required="true" />
+        <cfargument name="class" type="string" required="true" />
+        <cfargument name="count" type="numeric" required="true" />
+        <cfargument name="displayCount" type="boolean" required="false" default="true" />
 
-	<cffunction name="ListAppendClass" returntype="string" output="false" access="public">
-		<cfargument name="theList" type="string" required="true" />
-		<cfargument name="class" type="string" required="true" />
-		<cfargument name="count" type="numeric" required="true" />
-		<cfargument name="displayCount" type="boolean" required="false" default="true" />
+        <cfset var newList = '' />
+        <cfset var word = arguments.class />
 
-		<cfset var newList 	= '' />
-		<cfset var word 		= arguments.class />
+        <cfif ( NOT arguments.count )>
+            <cfreturn arguments.theList />
+        </cfif>
 
-		<cfif ( NOT arguments.count )>
-			<cfreturn arguments.theList />
-		</cfif>
+        <cfif arguments.count GT 1>
+            <cfset word = word & 's' />
+        </cfif>
 
-		<cfif arguments.count GT 1>
-			<cfset word = word & 's' />
-		</cfif>
+        <cfif arguments.displayCount>
+            <cfset newList = ListAppend( arguments.theList, arguments.count & ' ' & word, '|' ) />
+        <cfelse>
+            <cfset newList = ListAppend( arguments.theList, word, '|' ) />
+        </cfif>
 
-		<cfif arguments.displayCount>
-			<cfset newList = ListAppend( arguments.theList, arguments.count & ' ' & word, '|' ) />
-		<cfelse>
-			<cfset newList = ListAppend( arguments.theList, word, '|' ) />
-		</cfif>
+        <cfreturn newList />
+    </cffunction>
 
-		<cfreturn newList />
-	</cffunction>
+    <cffunction name="ListAppendQueryTerm" returntype="string" output="false" access="public">
+        <cfargument name="theList" type="string" required="true" />
+        <cfargument name="term" type="string" required="true" />
+        <cfargument name="count" type="numeric" required="true" />
 
-	<cffunction name="ListAppendQueryTerm" returntype="string" output="false" access="public">
-		<cfargument name="theList" type="string" required="true" />
-		<cfargument name="term" type="string" required="true" />
-		<cfargument name="count" type="numeric" required="true" />
+        <cfset var newList = '' />
+        <cfset var word = arguments.term />
 
-		<cfset var newList 	= '' />
-		<cfset var word 		= arguments.term />
+        <cfif ( NOT arguments.count )>
+            <cfreturn arguments.theList />
+        </cfif>
 
-		<cfif (NOT arguments.count)>
-			<cfreturn arguments.theList />
-		</cfif>
+        <!--- we're only going to look at classes, everything is disregarded for now --->
+        <cfif ListFind( 'deth,drui,hunt,mage,pala,prie,rogu,sham,warl,warr', arguments.term )>
+            <cfreturn ListAppendClass( arguments.theList, GetClassFromTerm( arguments.term ), arguments.count+1, false ) /> <!--- the +1 guarantees that there are always a plural # of classes to make the grammar correct --->
+        <cfelse>
+            <!--- just return the list unchanged if not --->
+            <cfreturn arguments.theList />
+        </cfif>
+    </cffunction>
 
-		<!--- we're only going to look at classes, everything is disregarded for now --->
-		<cfif ListFind( 'deth,drui,hunt,mage,pala,prie,rogu,sham,warl,warr', arguments.term )>
-			<cfreturn ListAppendClass( arguments.theList, GetClassFromTerm( arguments.term ), arguments.count+1, false ) /> <!--- the +1 guarantees that there are always a plural # of classes to make the grammar correct --->
-		<cfelse>
-			<!--- just return the list unchanged if not --->
-			<cfreturn arguments.theList />
-		</cfif>
-	</cffunction>
+    <cffunction name="Feed" returntype="void" access="public" output="false"
+            hint="I am responsible for examining the bottom-most rows of spider data in the db that are missing post bodies, spawning threads to fetch that data, and updated the db where applicable. Death is close.">
+        <cfargument name="maxThreads" type="numeric" required="true" />
 
-	<cffunction name="Feed" returntype="void" access="public" output="false"
-				hint="I am responsible for examining the bottom-most rows of spider data in the db that are missing post bodies, spawning threads to fetch that data, and updated the db where applicable. Death is close.">
-		<cfargument name="maxThreads" type="numeric" required="true" />
+        <cfset var tentacle = 0 />
+        <cfset var postBody = '' />
+        <cfset var armoryURL = '' />
+        <cfset var row = 0 />
+        <cfset var id = '' />
+        <cfset var qLinks__FetchAllWithoutBodies = 0 />
 
-		<cfset var tentacle = 0 />
-		<cfset var postBody = '' />
-		<cfset var armoryURL = '' />
-		<cfset var row = 0 />
-		<cfset var id = '' />
-		<cfset var qLinks__FetchAllWithoutBodies = 0 />
+        <cfquery name="qLinks__FetchAllWithoutBodies" datasource="#variables.dsn#" blockfactor="#arguments.maxThreads#">
+            SELECT TOP
+                #arguments.maxThreads# l.*, s.SiteUUID, s.Hook
+            FROM
+                Links l
+            INNER JOIN
+                Sites s ON (l.PostID = s.PostID)
+            WHERE
+                (l.PostBody = '' OR l.PostBody IS NULL)
+            ORDER BY
+                l.PostID
+        </cfquery>
 
-		<cfquery name="qLinks__FetchAllWithoutBodies" datasource="#variables.dsn#" blockfactor="#arguments.maxThreads#">
-			SELECT TOP
-				#arguments.maxThreads# l.*, s.SiteUUID, s.Hook
-			FROM
-				Links l
-			INNER JOIN
-				Sites s ON (l.PostID = s.PostID)
-			WHERE
-				(l.PostBody = '' OR l.PostBody IS NULL)
-			ORDER BY
-				l.PostID
-		</cfquery>
+        <cfif qLinks__FetchAllWithoutBodies.RecordCount>
 
-		<cfif qLinks__FetchAllWithoutBodies.RecordCount>
+            <cfloop query="qLinks__FetchAllWithoutBodies">
 
-			<cfloop query="qLinks__FetchAllWithoutBodies">
+                <cfset id = getTimestamp() />
 
-				<cfset id = getTimestamp() />
+                <cfthread name="__Feed_thread_#qLinks__FetchAllWithoutBodies.currentRow#_#id#"
+                        row="#qLinks__FetchAllWithoutBodies.currentRow#"
+                        tSiteUUID="#qLinks__FetchAllWithoutBodies.SiteUUID[qLinks__FetchAllWithoutBodies.currentRow]#"
+                        tHook="#qLinks__FetchAllWithoutBodies.Hook[qLinks__FetchAllWithoutBodies.currentRow]#"
+                        tPostID="#qLinks__FetchAllWithoutBodies.PostID[qLinks__FetchAllWithoutBodies.currentRow]#"
+                        tID="#id#"
+                        action="run">
 
-				<cfthread name="__Feed_thread_#qLinks__FetchAllWithoutBodies.currentRow#_#id#"
-						  row="#qLinks__FetchAllWithoutBodies.currentRow#"
-						  tSiteUUID="#qLinks__FetchAllWithoutBodies.SiteUUID[qLinks__FetchAllWithoutBodies.currentRow]#"
-						  tHook="#qLinks__FetchAllWithoutBodies.Hook[qLinks__FetchAllWithoutBodies.currentRow]#"
-						  tPostID="#qLinks__FetchAllWithoutBodies.PostID[qLinks__FetchAllWithoutBodies.currentRow]#"
-						  tID="#id#"
-						  action="run">
+                    <cfset var armoryURL = '' />
+                    <cfset var tentacle = 0 />
+                    <cfset var postBody = '' />
 
-					<cfset var armoryURL = '' />
-					<cfset var tentacle = 0 />
-					<cfset var postBody = '' />
+                    <cflog file="Kathune" type="information" text="__Feed_thread_#row#_#tID# - Feeding off of SiteUUID: #tSiteUUID#, Hook: #tHook#, PostID: #tPostID#">
 
-					<cflog file="Kathune" type="information" text="__Feed_thread_#row#_#tID# - Feeding off of SiteUUID: #tSiteUUID#, Hook: #tHook#, PostID: #tPostID#">
+                    <cfset tentacle = getTentacleBySiteUUID( tSiteUUID ) />
+                    <cfset postBody = tentacle.fetchPostByHook( tHook ) />
 
-					<cfset tentacle 	= getTentacleBySiteUUID( tSiteUUID ) />
-					<cfset postBody 	= tentacle.fetchPostByHook( tHook ) />
+                    <cfif Len( postBody )>
 
-					<cfif Len( postBody )>
+                        <!--- let's get rid of some shit first --->
+                        <cfif Find( '\n', postBody )>
+                            <cfset postBody = Replace( postBody, '\n', ' ', 'ALL' ) />
+                        </cfif>
 
-						<!--- let's get rid of some shit first --->
-						<cfif Find( '\n', postBody )>
-							<cfset postBody = Replace( postBody, '\n', ' ', 'ALL' ) />
-						</cfif>
+                        <cfset armoryURL = tentacle.fetchArmoryURLFromPost( postBody ) />
 
-						<cfset armoryURL = tentacle.fetchArmoryURLFromPost( postBody ) />
+                        <cfquery name="qUpdateLink__Feed_thread#tID#" datasource="#variables.dsn#">
+                            set nocount on;
+                            UPDATE
+                                Links
+                            SET
+                                PostBody = '#postBody#',
+                                ArmoryURL = '#armoryURL#'
+                            WHERE
+                                PostID = #tPostID#
+                        </cfquery>
 
-						<cfquery name="qUpdateLink__Feed_thread#tID#" datasource="#variables.dsn#">
-							set nocount on;
-							UPDATE
-								Links
-							SET
-								PostBody = '#postBody#',
-								ArmoryURL = '#armoryURL#'
-							WHERE
-								PostID = #tPostID#
-						</cfquery>
+                        <cflog file="Kathune" type="information" text="__Feed_thread_#row#_#tID# - Post Eaten (Body: #Len(postBody)# bytes, Armory: #Iif( Len( armoryURL ), De('TRUE'), De('FALSE') )#)">
 
-						<cflog file="Kathune" type="information" text="__Feed_thread_#row#_#tID# - Post Eaten (Body: #Len(postBody)# bytes, Armory: #Iif( Len( armoryURL ), De('TRUE'), De('FALSE') )#)">
+                    <cfelse>
 
-					<cfelse>
+                        <cfquery name="qPurgeLink__Feed_thread#tID#" datasource="#variables.dsn#">
+                            set nocount on;
+                            DELETE FROM
+                                Sites
+                            WHERE
+                                PostID = #tPostID#;
+                            DELETE FROM
+                                Links
+                            WHERE
+                                PostID = #tPostID#;
+                        </cfquery>
 
-						<cfquery name="qPurgeLink__Feed_thread#tID#" datasource="#variables.dsn#">
-							set nocount on;
-							DELETE FROM
-								 Sites
-							WHERE
-								PostID = #tPostID#;
-							DELETE FROM
-								 Links
-							WHERE
-								PostID = #tPostID#;
-						</cfquery>
+                        <cflog file="Kathune" type="information" text="__Feed_thread_#row#_#tID# - Post Not Found, PostID:#tPostID# purged from database">
 
-						<cflog file="Kathune" type="information" text="__Feed_thread_#row#_#tID# - Post Not Found, PostID:#tPostID# purged from database">
+                    </cfif>
 
-					</cfif>
+                </cfthread>
 
-				</cfthread>
+            </cfloop>
 
-			</cfloop>
+        </cfif>
+    </cffunction>
 
-		</cfif>
-	</cffunction>
+    <cffunction name="FetchXmlFromArmory" returntype="xml" access="public" output="false">
+        <cfargument name="url" type="string" required="true" />
 
-	<cffunction name="FetchXmlFromArmory" returntype="xml" access="public" output="false">
-		<cfargument name="url" type="string" required="true" />
-
-		<cfscript>
-		var xmlObject 		= XmlNew();
-		var httpVar 		= StructNew();
-		var httpResult 	= '';
-		var treatedURL	= Replace( arguments.url, '&amp;', '&', 'ALL' );
+        <cfscript>
+        var xmlObject = XmlNew();
+        var httpVar = StructNew();
+        var httpResult = '';
+        var treatedURL = Replace( arguments.url, '&amp;', '&', 'ALL' );
 		</cfscript>
 
-		<cftry>
-			<cflog file="Kathune" type="information" text="FetchXmlFromArmory() - Fetching XML From Armory: #treatedURL#">
+        <cftry>
+            <cflog file="Kathune" type="information" text="FetchXmlFromArmory() - Fetching XML From Armory: #treatedURL#">
 
-			<cfhttp method="get" url="#treatedURL#" timeout="#variables.timeout#" resolveurl="false" result="httpVar" useragent="#getUserAgent(true)#">
+            <cfhttp method="get" url="#treatedURL#" timeout="#variables.timeout#" resolveurl="false" result="httpVar" useragent="#getUserAgent(true)#">
 
-			<cfset httpResult = httpVar.fileContent />
+            <cfset httpResult = httpVar.fileContent />
 
-			<cfif httpResult is "Connection Failure">
-				<cfreturn xmlObject />
-			</cfif>
+            <cfif httpResult is "Connection Failure">
+                <cfreturn xmlObject />
+            </cfif>
 
-			<cfcatch type="any">
-				<cfreturn xmlObject />
-			</cfcatch>
-		</cftry>
+            <cfcatch type="any">
+                <cfreturn xmlObject />
+            </cfcatch>
+        </cftry>
 
-		<cfif isXML( httpResult )>
-			<cfset xmlObject = XmlParse( httpResult ) />
-		</cfif>
+        <cfif isXML( httpResult )>
+            <cfset xmlObject = XmlParse( httpResult ) />
+        </cfif>
 
-		<!--- God I hate isDefined..so prone to errors --->
-		<cfif IsDefined('xmlObj.page.characterInfo.XmlAttributes.errCode') AND xmlobj.page.characterInfo.XmlAttributes.errCode EQ 'noCharacter'>
-			<cfreturn XmlNew() />
-		</cfif>
+        <!--- God I hate isDefined..so prone to errors --->
+        <cfif IsDefined('xmlObj.page.characterInfo.XmlAttributes.errCode') AND xmlobj.page.characterInfo.XmlAttributes.errCode EQ 'noCharacter'>
+            <cfreturn XmlNew() />
+        </cfif>
 
-		<cfreturn xmlObject />
+        <cfreturn xmlObject />
+    </cffunction>
+
+    <cffunction name="BuildUpdateSQLForSingleClass" returntype="string" access="public" output="false">
+        <cfargument name="class" type="string" required="true" />
+
+        <cfset var sql = '' />
+        <cfset var classes = 'DeathKnight,Druid,Hunter,Mage,Paladin,Priest,Rogue,Shaman,Warlock,Warrior' />
+        <cfset var thisClass = '' />
+
+        <cfloop list="#classes#" index="thisClass">
+            <cfset sql = sql & 'is' & thisClass & ' = ' & Iif( NOT CompareNoCase( thisClass, arguments.class ), De('1'), De('0') ) />
+            <cfif thisClass NEQ ListLast( classes )>
+                <cfset sql = sql & ',' />
+            </cfif>
+        </cfloop>
+
+        <cfreturn sql />
+    </cffunction>
+
+    <cffunction name="ClassIsUnknownInQueryRow" returntype="boolean" access="public" output="false">
+        <cfargument name="dataQuery" type="query" required="true" />
+        <cfargument name="row" type="numeric" required="false" default="1" />
+
+        <cfif arguments.dataQuery.isDeathKnight[arguments.row] EQ 0 AND
+                arguments.dataQuery.isDruid[arguments.row] EQ 0 AND
+                arguments.dataQuery.isHunter[arguments.row] EQ 0 AND
+                arguments.dataQuery.isMage[arguments.row] EQ 0 AND
+                arguments.dataQuery.isPaladin[arguments.row] EQ 0 AND
+                arguments.dataquery.isPriest[arguments.row] EQ 0 AND
+                arguments.dataQuery.isRogue[arguments.row] EQ 0 AND
+                arguments.dataQuery.isShaman[arguments.row] EQ 0 AND
+                arguments.dataQuery.isWarlock[arguments.row] EQ 0 AND
+                arguments.dataQuery.isWarrior[arguments.row] EQ 0>
+            <cfreturn true />
+        <cfelse>
+            <cfreturn false />
+        </cfif>
+    </cffunction>
+
+    <cffunction name="UpdateScoreViaReadability" returntype="numeric" access="public" output="false">
+        <cfargument name="currentScore" type="numeric" required="true" />
+        <cfargument name="resumeContent" type="string" required="true" />
+
+        <cfset var gf = 0 />
+        <cfset var fre = 0 />
+        <cfset var resume = arguments.resumeContent />
+        <cfset var finalScore = arguments.currentScore />
+
+        <!--- analyze your post (html/xml stripped completely away)--->
+        <cfset resume = stripTags( 'allow', '', resume ) />
+
+        <!--- get gunning-fog --->
+        <cfset gf = variables.analysis.GunningFogScore( resume ) />
+
+        <!--- get flesch-reading-ease --->
+        <cfset fre = variables.analysis.FleschReadingEaseScore( resume ) />
+
+        <!--- *** GUNNING-FOG *** --->
+        <!--- if your gunning fog is 6.0 or less --->
+        <cfif gf lte 6>
+            <!--- bad stuff happens here --->
+            <cfset finalScore = finalScore - 5 />
+        </cfif>
+
+        <!--- if your gf is 15 (or greater) --->
+        <cfif gf gte 15>
+            <!--- great stuff happens here (max:75) --->
+            <cfset finalScore = finalScore + 25 />
+        </cfif>
+
+        <cfif gf gt 10 and gf lt 15>
+            <!--- good stuff happens here --->
+            <cfset finalScore = finalScore + 10 />
+        </cfif>
+
+        <cfif gf gt 6 and gf lt 10>
+            <!--- adequate stuff happens here --->
+            <cfset finalScore = finalScore + 5 />
+        </cfif>
+
+        <!--- *** FLESCH READING EASE *** --->
+        <cfif fre gte 60 and fre lte 70>
+            <!--- great stuff happens here (max:100) --->
+            <cfset finalScore = finalScore + 25 />
+        </cfif>
+
+        <cfif fre lt 60>
+            <cfif fre gte 50>
+                <!--- 50-60 good stuff --->
+                <cfset finalScore = finalScore + 10 />
+            </cfif>
+            <cfif fre gte 30>
+                <!--- 30-50 adequate stuff --->
+                <cfset finalScore = finalScore + 5 />
+            </cfif>
+            <cfif fre lt 30>
+                <!--- 0-35 bad stuff --->
+                <cfset finalScore = finalScore - 5 />
+            </cfif>
+        </cfif>
+
+        <cfif fre gt 70>
+            <cfif fre lt 80>
+                <!--- 70-80 good stuff --->
+                <cfset finalScore = finalScore + 10 />
+            </cfif>
+            <cfif fre lt 95>
+                <!--- 80-95 adequate stuff --->
+                <cfset finalScore = finalScore + 5 />
+            </cfif>
+            <cfif fre gte 95>
+                <!--- 95-100 bad stuff --->
+                <cfset finalScore = finalScore - 5 />
+            </cfif>
+        </cfif>
+
+        <cfreturn finalScore />
+    </cffunction>
+
+    <cffunction name="AddRecruitToQueue" returntype="void" access="public" output="false">
+        <cfargument name="postID" type="numeric" required="true" />
+
+        <cfset var recruit = GetPost( arguments.postID ) />
+
+        <cfset ArrayAppend( variables.NewRecruitQueue, recruit ) />
+    </cffunction>
+
+    <cffunction name="UpdateRecordWithArmory" returntype="void" access="public" output="false">
+        <cfargument name="armoryXML" type="xml" required="true" />
+        <cfargument name="postID" type="numeric" required="true" />
+
+        <cfset var finalScore = 25 /> <!--- you get 25 points just for having posted an armory link --->
+        <cfset var character = 0 />
+        <cfset var professionScore = 0 />
+        <cfset var professions = 0 />
+        <cfset var gf = 0 />
+        <cfset var fre = 0 />
+        <cfset var i = 0 />
+        <cfset var data = StructNew() />
+        <cfset var faction = '' />
+        <cfset var class = '' />
+        <cfset var classSQL = '' />
+        <cfset var resume = ''/>
+        <cfset var infoQuery = GetPost( arguments.postID ) />
+
+        <!--- repair server type --->
+        <cfif ( infoQuery.isPvP EQ 0 AND infoQuery.isPvE EQ 0 )>
+
+            <cfset character = XmlSearch( arguments.armoryXML, '//character' ) />
+
+            <cfif IsArray( character ) AND ArrayLen( character ) AND StructKeyExists( character[1], 'XmlAttributes' )>
+
+                <cfset data = getServerTypeFromTitleByRegion( infoQuery.Region, character[1].XmlAttributes.realm ) />
+
+                <!--- 5 points for having a server type (max:30) --->
+                <cfset finalScore = finalScore + 5 />
+
+            </cfif>
+
+        </cfif>
+
+        <!--- repair faction --->
+        <cfif ( infoQuery.isAlliance EQ 0 AND infoQuery.isHorde EQ 0 )>
+
+            <cfset character = XmlSearch( arguments.armoryXML, '//character' ) />
+
+            <cfif IsArray( character ) AND ArrayLen( character ) AND StructKeyExists( character[1], 'XmlAttributes' )>
+
+                <cfset faction = character[1].XmlAttributes.faction />
+
+                <!--- 5 points for having a faction (max:35) --->
+                <cfset finalScore = finalScore + 5 />
+
+            </cfif>
+
+        </cfif>
+
+        <!--- repair class --->
+        <cfif ClassIsUnknownInQueryRow( infoQuery )>
+
+            <cfset character = XmlSearch( arguments.armoryXML, '//character' ) />
+
+            <cfif IsArray( character ) AND ArrayLen( character ) AND StructKeyExists( character[1], 'XmlAttributes' )>
+
+                <cfset class = character[1].XmlAttributes.class />
+                <cfset classSQL = BuildUpdateSQLForSingleClass( class )>
+
+                <!--- 5 points for specifying an individual class (max:40) --->
+                <cfset finalScore 	= finalScore + 5 />
+
+            </cfif>
+
+        </cfif>
+
+        <!--- use armory info to provide additional data to take the score past 50 --->
+        <!--- have you maxed both your professions? --->
+        <cfset professions = XmlSearch( arguments.armoryXML, '//professions' ) />
+
+        <cfif IsArray( professions ) AND ArrayLen( professions ) AND StructKeyExists( professions[1], 'XmlChildren' ) AND ArrayLen( professions[1].XmlChildren )>
+
+            <cfloop from="1" to="#ArrayLen( professions[1].XmlChildren )#" index="i">
+                <cfif professions[1].XmlChildren[i].XmlAttributes.value EQ professions[1].XmlChildren[i].XmlAttributes.max>
+                    <cfset professionScore = professionScore + 1 />
+                </cfif>
+            </cfloop>
+
+            <!--- 5 points for each maxxed profession (10 total) (max:50) --->
+            <cfset finalScore = finalScore + ( 5 * professionScore ) />
+
+        </cfif>
+
+        <!--- tack on readability analysis --->
+        <cfset finalScore = UpdateScoreViaReadability( finalScore, infoQuery.PostBody ) />
+
+        <!--- penalize them if they are an idiot --->
+        <cfif infoQuery.isIdiot EQ 1>
+            <cfset finalScore = finalScore - 5 />
+        </cfif>
+
+        <!--- *sigh* you just failed as a guidly, player, and human being --->
+        <cfif finalScore LTE 1>
+            <cfset finalScore = 5 />
+        </cfif>
+
+        <cfquery name="qUpdateLink__WithArmory" datasource="#variables.dsn#">
+            set nocount on;
+            UPDATE
+                Links
+            SET
+                score = #finalScore#<cfif NOT StructIsEmpty( data )>,
+                isPvP = #data.isPvP#,
+                isPvE = #data.isPvE#</cfif><cfif Len( faction )>,
+                <cfif faction IS 'Horde'>isHorde = 1<cfelse>isAlliance = 1</cfif></cfif><cfif Len( classSQL )>,
+                #classSQL#</cfif>
+            WHERE
+                PostID = #arguments.postID#
+        </cfquery>
+
+        <cflog file="Kathune" type="information" text="UpdateRecordWithArmory() - PostID: #arguments.postID# updated with a score of #finalScore#">
+    </cffunction>
+
+    <cffunction name="UpdateRecordWithoutArmory" returntype="void" access="public" output="false">
+        <cfargument name="postID" type="numeric" required="true" />
+
+        <cfset var finalScore = 5 /> <!--- 5 just for showing up --->
+
+        <!--- without a provided armory URL, the maximum score you can achieve is xx --->
+        <cfset var infoQuery = GetPost( arguments.postID ) />
+
+        <!--- validate server type --->
+        <cfif (infoQuery.isPvP EQ 1 OR infoQuery.isPvE EQ 1)>
+            <!--- 5 points for having a server type (max:10) --->
+            <cfset finalScore = finalScore + 5 />
+        </cfif>
+
+        <!--- validate faction --->
+        <cfif (infoQuery.isAlliance EQ 1 OR infoQuery.isHorde EQ 1)>
+            <!--- 5 points for having a faction (max:15) --->
+            <cfset finalScore = finalScore + 5 />
+        </cfif>
+
+        <!--- validate class --->
+        <cfif NOT ClassIsUnknownInQueryRow( infoQuery )>
+            <!--- 5 points for having any class of any type (max:20) --->
+            <cfset finalScore = finalScore + 5 />
+        </cfif>
+
+        <!--- tack on readability analysis (max:70) --->
+        <cfset finalScore = UpdateScoreViaReadability( finalScore, infoQuery.PostBody ) />
+
+        <!--- penalize them if they are an idiot --->
+        <cfif infoQuery.isIdiot EQ 1>
+            <cfset finalScore = finalScore - 5 />
+        </cfif>
+
+        <!--- *sigh* you just failed as a guidly, player, and human being --->
+        <cfif finalScore LTE 1>
+            <cfset finalScore = 5 />
+        </cfif>
+
+        <cfquery name="qUpdateLink__WithoutArmory" datasource="#variables.dsn#">
+            set nocount on;
+            UPDATE
+                Links
+            SET
+                score = #finalScore#
+            WHERE
+                PostID = #arguments.postID#
+        </cfquery>
+
+        <cflog file="Kathune" type="information" text="UpdateRecordWithoutArmory() - PostID: #arguments.postID# updated with a score of #finalScore#">
+    </cffunction>
+
+    <cffunction name="Digest" returntype="void" access="public" output="false"
+            hint="I am responsible performing final scoring on newly entered records of data. When I complete scoring, the record is considered valid and is produced in search results. Your heart will explode.">
+        <cfargument name="maxThreads" type="numeric" required="true" />
+
+        <cfset var tentacle = 0 />
+        <cfset var postBody = '' />
+        <cfset var armoryURL = '' />
+        <cfset var row = 0 />
+        <cfset var id = '' />
+        <cfset var qLinks__FetchAllWithBaseScore = 0 />
+
+        <cfquery name="qLinks__FetchAllWithBaseScore" datasource="#variables.dsn#" blockfactor="#arguments.maxThreads#">
+            SELECT TOP
+                #arguments.maxThreads# l.*, s.SiteUUID, s.Hook
+            FROM
+                Links l
+            INNER JOIN
+                Sites s ON (l.PostID = s.PostID)
+            WHERE
+                (l.PostBody <> '' AND l.PostBody IS NOT NULL)
+            AND
+                (l.Score = 1)
+            ORDER BY
+                l.PostID
+        </cfquery>
+
+        <cfif qLinks__FetchAllWithBaseScore.RecordCount>
+
+            <cfloop query="qLinks__FetchAllWithBaseScore">
+
+                <cfset id = getTimestamp() />
+
+                <cfthread name="__Digest_thread_#qLinks__FetchAllWithBaseScore.currentRow#_#id#"
+                        row="#qLinks__FetchAllWithBaseScore.currentRow#"
+                        tSiteUUID="#qLinks__FetchAllWithBaseScore.SiteUUID[qLinks__FetchAllWithBaseScore.currentRow]#"
+                        tHook="#qLinks__FetchAllWithBaseScore.Hook[qLinks__FetchAllWithBaseScore.currentRow]#"
+                        tPostID="#qLinks__FetchAllWithBaseScore.PostID[qLinks__FetchAllWithBaseScore.currentRow]#"
+                        tArmoryURL="#qLinks__FetchAllWithBaseScore.ArmoryURL[qLinks__FetchAllWithBaseScore.currentRow]#"
+                        tID="#id#"
+                        action="run">
+
+                    <cfset var tentacle = 0 />
+                    <cfset var postBody = '' />
+                    <cfset var score = 0 />
+                    <cfset var xmlData = XmlNew() />
+
+                    <cflog file="Kathune" type="information" text="__Digest_thread_#row#_#tID# - Digesting SiteUUID: #tSiteUUID#, Hook: #tHook#, PostID: #tPostID#">
+
+                    <!--- does it have an ArmoryURL? --->
+                    <cfif Len( tArmoryURL )>
+
+                        <!--- attempt to fetch the record --->
+                        <cfset xmlData = FetchXmlFromArmory( tArmoryURL ) />
+
+                        <!--- if you get a response from the armory, perform the scoring, otherwise, we'll skip this record and it will be re-attempted at a future pass --->
+                        <cfif NOT StructIsEmpty( xmlData )>
+
+                            <cflog file="Kathune" type="information" text="__Digest_thread_#row#_#tID# - Armory Info Detected for PostID: #tPostID#, calling UpdateRecordWithArmory()">
+
+                            <cfset UpdateRecordWithArmory( xmlData, tPostID ) />
+
+                            <cfset AddRecruitToQueue( tPostID ) />
+
+                        </cfif>
+
+                    <cfelse>
+
+                        <cflog file="Kathune" type="information" text="__Digest_thread_#row#_#tID# - No Armory Info for PostID: #tPostID#, calling UpdateRecordWithoutArmory()">
+
+                        <!--- there is no armory data to speak of, so they'll get the peasant-level rating system applied --->
+                        <cfset UpdateRecordWithoutArmory( tPostID ) />
+
+                        <cfset AddRecruitToQueue( tPostID ) />
+
+                    </cfif>
+
+                </cfthread>
+
+            </cfloop>
+
+        </cfif>
 	</cffunction>
 
-	<cffunction name="BuildUpdateSQLForSingleClass" returntype="string" access="public" output="false">
-		<cfargument name="class" type="string" required="true" />
-
-		<cfset var sql 				= '' />
-		<cfset var classes 			= 'DeathKnight,Druid,Hunter,Mage,Paladin,Priest,Rogue,Shaman,Warlock,Warrior' />
-		<cfset var thisClass 		= '' />
-
-		<cfloop list="#classes#" index="thisClass">
-			<cfset sql = sql & 'is' & thisClass & ' = ' & Iif( NOT CompareNoCase( thisClass, arguments.class ), De('1'), De('0') ) />
-			<cfif thisClass NEQ ListLast( classes )>
-				<cfset sql = sql & ',' />
-			</cfif>
-		</cfloop>
-
-		<cfreturn sql />
-	</cffunction>
-
-	<cffunction name="ClassIsUnknownInQueryRow" returntype="boolean" access="public" output="false">
-		<cfargument name="dataQuery" type="query" required="true" />
-		<cfargument name="row" type="numeric" required="false" default="1" />
-
-		<cfif arguments.dataQuery.isDeathKnight[arguments.row] EQ 0 AND
-			  arguments.dataQuery.isDruid[arguments.row] EQ 0 AND
-			  arguments.dataQuery.isHunter[arguments.row] EQ 0 AND
-			  arguments.dataQuery.isMage[arguments.row] EQ 0 AND
-			  arguments.dataQuery.isPaladin[arguments.row] EQ 0 AND
-			  arguments.dataquery.isPriest[arguments.row] EQ 0 AND
-			  arguments.dataQuery.isRogue[arguments.row] EQ 0 AND
-			  arguments.dataQuery.isShaman[arguments.row] EQ 0 AND
-			  arguments.dataQuery.isWarlock[arguments.row] EQ 0 AND
-			  arguments.dataQuery.isWarrior[arguments.row] EQ 0>
-			<cfreturn true />
-		<cfelse>
-			<cfreturn false />
-		</cfif>
-	</cffunction>
-
-	<cffunction name="UpdateScoreViaReadability" returntype="numeric" access="public" output="false">
-		<cfargument name="currentScore" type="numeric" required="true" />
-		<cfargument name="resumeContent" type="string" required="true" />
-
-		<cfset var gf = 0 />
-		<cfset var fre = 0 />
-		<cfset var resume = arguments.resumeContent />
-		<cfset var finalScore = arguments.currentScore />
-
-		<!--- analyze your post (html/xml stripped completely away)--->
-		<cfset resume = stripTags( 'allow', '', resume ) />
-
-		<!--- get gunning-fog --->
-		<cfset gf = variables.analysis.GunningFogScore( resume ) />
-
-		<!--- get flesch-reading-ease --->
-		<cfset fre = variables.analysis.FleschReadingEaseScore( resume ) />
-
-		<!--- *** GUNNING-FOG *** --->
-		<!--- if your gunning fog is 6.0 or less --->
-		<cfif gf lte 6>
-			<!--- bad stuff happens here --->
-			<cfset finalScore = finalScore - 5 />
-		</cfif>
-
-		<!--- if your gf is 15 (or greater) --->
-		<cfif gf gte 15>
-			<!--- great stuff happens here (max:75) --->
-			<cfset finalScore = finalScore + 25 />
-		</cfif>
-
-		<cfif gf gt 10 and gf lt 15>
-			<!--- good stuff happens here --->
-			<cfset finalScore = finalScore + 10 />
-		</cfif>
-
-		<cfif gf gt 6 and gf lt 10>
-			<!--- adequate stuff happens here --->
-			<cfset finalScore = finalScore + 5 />
-		</cfif>
-
-		<!--- *** FLESCH READING EASE *** --->
-		<cfif fre gte 60 and fre lte 70>
-			<!--- great stuff happens here (max:100) --->
-			<cfset finalScore = finalScore + 25 />
-		</cfif>
-
-		<cfif fre lt 60>
-			<cfif fre gte 50>
-				<!--- 50-60 good stuff --->
-				<cfset finalScore = finalScore + 10 />
-			</cfif>
-			<cfif fre gte 30>
-				<!--- 30-50 adequate stuff --->
-				<cfset finalScore = finalScore + 5 />
-			</cfif>
-			<cfif fre lt 30>
-				<!--- 0-35 bad stuff --->
-				<cfset finalScore = finalScore - 5 />
-			</cfif>
-		</cfif>
-
-		<cfif fre gt 70>
-			<cfif fre lt 80>
-				<!--- 70-80 good stuff --->
-				<cfset finalScore = finalScore + 10 />
-			</cfif>
-			<cfif fre lt 95>
-				<!--- 80-95 adequate stuff --->
-				<cfset finalScore = finalScore + 5 />
-			</cfif>
-			<cfif fre gte 95>
-				<!--- 95-100 bad stuff --->
-				<cfset finalScore = finalScore - 5 />
-			</cfif>
-		</cfif>
+    <cffunction name="Boast" returntype="void" output="false" access="public"
+            hint="I update historical data when appropriate. You will betray your friends.">
+        <cfscript>
+            var NumPosts = 0;
+            var NumAlliance = 0;
+            var NumHorde = 0;
+            var NumPvP = 0;
+            var NumPvE = 0;
+            var NumIdiots = 0;
+            var NumDruids = 0;
+            var NumDeathKnights = 0;
+            var NumHunters = 0;
+            var NumMages = 0;
+            var NumPaladins = 0;
+            var NumPriests = 0;
+            var NumRogues = 0;
+            var NumShamans = 0;
+            var NumWarlocks = 0;
+            var NumWarriors = 0;
+            var NumUS = 0;
+            var NumEU = 0;
+            var NumArmory = 0;
+
+            //step 1. find out what last month was, and determine if we have data for that month, which should correlate to the 1st of that month.
+
+            var lastMonthDate 		= DateAdd( "m", -1, now() );
+            var checkDateStart 		= CreateDate( Year( lastMonthDate ), Month( lastMonthDate ), 1 );
+            var checkDateEnd 		= CreateDate( Year( lastMonthDate ), Month( lastMonthDate ), DaysInMonth( lastMonthDate ) );
+        </cfscript>
+
+        <cfquery name="dateCheck" datasource="#variables.dsn#">
+            SELECT
+                HistoryID
+            FROM
+                History
+            WHERE
+                EffectiveDate = #CreateODBCDate(checkDateStart)#
+        </cfquery>
+
+        <cfif NOT dateCheck.RecordCount>
+
+            <!--- it does not exist, so let's load up the stats for the month --->
+            <cfquery name="statOne" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumPosts
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+            </cfquery>
+
+            <cfset NumPosts = statOne.NumPosts />
+
+            <cfquery name="statTwo" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumAlliance
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isAlliance = 1
+            </cfquery>
+
+            <cfset NumAlliance = statTwo.NumAlliance />
+
+            <cfquery name="statThree" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumHorde
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isHorde = 1
+            </cfquery>
+
+            <cfset NumHorde = statThree.NumHorde />
+
+            <cfquery name="statFour" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumPvP
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isPvP = 1
+            </cfquery>
+
+            <cfset NumPvP = statFour.NumPvP />
+
+            <cfquery name="statFive" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumPvE
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isPvE = 1
+            </cfquery>
+
+            <cfset NumPvE = statFive.NumPvE />
+
+            <cfquery name="statSix" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumIdiots
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isIdiot = 1
+            </cfquery>
+
+            <cfset NumIdiots = statSix.NumIdiots />
+
+            <cfquery name="statSeven" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumDruids
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isDruid = 1
+            </cfquery>
+
+            <cfset NumDruids = statSeven.NumDruids />
+
+            <cfquery name="statSevenPointFive" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumDeathKnights
+                FROM
+                    LINKS
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isDeathKnight = 1
+            </cfquery>
+
+            <cfset NumDeathKnights = statSevenPointFive.NumDeathKnights />
+
+            <cfquery name="statEight" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumHunters
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isHunter = 1
+            </cfquery>
+
+            <cfset NumHunters = statEight.NumHunters />
+
+            <cfquery name="statNine" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumMages
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isMage = 1
+            </cfquery>
+
+            <cfset NumMages = statNine.NumMages />
+
+            <cfquery name="statTen" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumPaladins
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isPaladin = 1
+            </cfquery>
+
+            <cfset NumPaladins = statTen.NumPaladins />
+
+            <cfquery name="statEleven" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumPriests
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isPriest = 1
+            </cfquery>
+
+            <cfset NumPriests = statEleven.NumPriests />
+
+            <cfquery name="statTwelve" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumRogues
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isRogue = 1
+            </cfquery>
+
+            <cfset NumRogues = statTwelve.NumRogues />
+
+            <cfquery name="statThirteen" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumShamans
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isShaman = 1
+            </cfquery>
+
+            <cfset NumShamans = statThirteen.NumShamans />
+
+            <cfquery name="statFourteen" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumWarlocks
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isWarlock = 1
+            </cfquery>
+
+            <cfset NumWarlocks = statFourteen.NumWarlocks />
+
+            <cfquery name="statFifteen" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumWarriors
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    isWarrior = 1
+            </cfquery>
+
+            <cfset NumWarriors = statFifteen.NumWarriors />
+
+            <cfquery name="statSixteen" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumUS
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    Region = 'US'
+            </cfquery>
+
+            <cfset NumUS = statSixteen.NumUS />
+
+            <cfquery name="statSeventeen" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumEU
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    Region = 'EU-EN'
+            </cfquery>
+
+            <cfset NumEU = statSeventeen.NumEU />
+
+            <cfquery name="statEighteen" datasource="#variables.dsn#">
+                SELECT
+                    count(PostID) as NumArmory
+                FROM
+                    Links
+                WHERE
+                    EffectiveDate >= #CreateODBCDate(checkDateStart)#
+                AND
+                    EffectiveDate <= #CreateODBCDate(checkDateEnd)#
+                AND
+                    ArmoryURL IS NOT NULL
+                AND
+                    ArmoryURL <> ''
+            </cfquery>
+
+            <cfset NumArmory = statEighteen.NumArmory />
+
+            <!--- we've got em! now let's cache them into History --->
+            <cfquery name="ins" datasource="#variables.dsn#">
+                set nocount on;
+                INSERT INTO
+                    History (
+                        EffectiveDate,
+                        NumPosts,
+                        NumAlliance,
+                        NumHorde,
+                        NumPvP,
+                        NumPvE,
+                        NumIdiots,
+                        NumDeathKnights,
+                        NumDruids,
+                        NumHunters,
+                        NumMages,
+                        NumPaladins,
+                        NumPriests,
+                        NumRogues,
+                        NumShamans,
+                        NumWarlocks,
+                        NumWarriors,
+                        NumUS,
+                        NumEU,
+                        NumArmory
+                    )
+                VALUES
+                    (
+                        #CreateODBCDate( checkDateStart )#,
+                        #NumPosts#,
+                        #NumAlliance#,
+                        #NumHorde#,
+                        #NumPvP#,
+                        #NumPvE#,
+                        #NumIdiots#,
+                        #NumDeathKnights#,
+                        #NumDruids#,
+                        #NumHunters#,
+                        #NumMages#,
+                        #NumPaladins#,
+                        #NumPriests#,
+                        #NumRogues#,
+                        #NumShamans#,
+                        #NumWarlocks#,
+                        #NumWarriors#,
+                        #NumUS#,
+                        #NumEU#,
+                        #NumArmory#
+                    )
+            </cfquery>
+
+        </cfif>
+
+    </cffunction>
+
+    <cffunction name="ExtendTentacles" returntype="void" access="public" output="false"
+            hint="I am responsible for spawning threads for each registered spider URL, firing the spiders, and retrieving the data they collect. Your friends will abandon you.">
+
+        <cfset var i = 0 />
+        <cfset var id = '' />
+
+        <cfloop from="1" to="#variables.httpFetchMaximum#" index="i">
+
+            <cfset variables.activeTentacle = variables.activeTentacle + 1 />
+
+            <cfif variables.activeTentacle GT ArrayLen( variables.tentacles )>
+                <cfset variables.activeTentacle = 1 />
+            </cfif>
+
+            <!--- <cflog file="Kathune" type="information" text="ExtendTentacles() - Spawning thread for tentacle in Array index #variables.activeTentacle#"> --->
+
+            <cfset id = getTimestamp() />
+
+            <cfthread name="__ExtendTentacle_thread#i#_#id#" tentacle="#variables.tentacles[variables.activeTentacle]#" action="run">
+
+                <cfset tentacle.Grab() />
+
+                <!--- <cfset thread.html = tentacle.getHTML() /> ---> <!--- for debugging only --->
+
+                <cfset RetrieveFoodFromTentacle( tentacle ) />
+
+            </cfthread>
+
+        </cfloop>
+
+        <!---
+        DEBUG ONLY:
+        join threads to master for dumping, only required for debugging/display in this method. In production, Kathune will fire-and-forget threads. --->
+        <!--- <cfthread action="join" name="thread1,thread2,thread3,thread4,thread5" timeout="#evaluate(15*1000*arrayLen(variables.tentacles))#" /> <!--- timeout should become 15*1000*(num threads) --->
+        <cfdump var=#cfthread.thread1#>
+        <cfdump var=#cfthread.thread2#>
+        <cfdump var=#cfthread.thread3#>
+        <cfdump var=#cfthread.thread4#>
+        <cfdump var=#cfthread.thread5#> --->
+        <!--- <cfabort/> --->
+    </cffunction>
+
+    <cffunction name="RetrieveFoodFromTentacle" returntype="void" access="private" output="false"
+            hint="I examine an individual spider for fetched data, confirm that it has people looking for guilds, and insert only those into the db that I have not yet already collected. You are already dead.">
+        <cfargument name="tentacle" type="struct" required="true" />
+
+        <cfset var postArray = arguments.tentacle.getPostsAsObjectArray() />
+        <cfset var thisPostObj = 0 />
+        <cfset var i = 0 />
+
+        <cfloop from="1" to="#ArrayLen( postArray )#" index="i">
+            <cfset thisPostObj = postArray[i] />
+
+            <!--- if the post has been scored as a person looking for a guild, and it doesn't already exist, insert --->
+            <cfif thisPostObj.getScore() GT 0 AND NOT PostExists( arguments.tentacle.getSiteUUID(), thisPostObj.getHookValue() )>
+
+                <cftransaction>
+
+                    <cfquery name="qInsert" datasource="#variables.dsn#">
+                        set nocount on;
+                        INSERT INTO
+                            Links (
+                                PostURL,
+                                PostTitle,
+                                PostBody,
+                                isAlliance,
+                                isHorde,
+                                isPvP,
+                                isPvE,
+                                isIdiot,
+                                isDeathKnight,
+                                isDruid,
+                                isHunter,
+                                isMage,
+                                isPaladin,
+                                isPriest,
+                                isRogue,
+                                isShaman,
+                                isWarlock,
+                                isWarrior,
+                                Score,
+                                Region,
+                                ArmoryURL
+                            )
+                        VALUES
+                            (
+                                '#thisPostObj.getPostURL()#',
+                                '#Replace( thisPostObj.getPostTitle() , "'", "''", "ALL" )#',
+                                '#thisPostObj.getPostBody()#',
+                                #thisPostObj.isAlliance()#,
+                                #thisPostObj.isHorde()#,
+                                #thisPostObj.isPvP()#,
+                                #thisPostObj.isPvE()#,
+                                #thisPostObj.isIdiot()#,
+                                #thisPostObj.isDeathKnight()#,
+                                #thisPostObj.isDruid()#,
+                                #thisPostObj.isHunter()#,
+                                #thisPostObj.isMage()#,
+                                #thisPostObj.isPaladin()#,
+                                #thisPostObj.isPriest()#,
+                                #thisPostObj.isRogue()#,
+                                #thisPostObj.isShaman()#,
+                                #thisPostObj.isWarlock()#,
+                                #thisPostObj.isWarrior()#,
+                                #thisPostObj.getScore()#,
+                                '#thisPostObj.getRegion()#',
+                                '#thisPostObj.getArmoryURL()#'
+                            );
+                        SELECT
+                            @@IDENTITY AS IDENTITY_PKEY;
+                    </cfquery>
+
+                    <cfset thisPostObj.setPostID( qInsert.IDENTITY_PKEY ) />
+
+                    <cfquery name="ins_join" datasource="#variables.dsn#">
+                        INSERT INTO
+                            Sites (
+                                PostID,
+                                SiteUUID,
+                                Hook
+                            )
+                        VALUES
+                            (
+                                #thisPostObj.getPostID()#,
+                                '#arguments.tentacle.getSiteUUID()#',
+                                '#thisPostObj.getHookValue()#'
+                            )
+                    </cfquery>
+
+                </cftransaction>
+
+            </cfif>
+
+        </cfloop>
+    </cffunction>
 
-		<cfreturn finalScore />
-	</cffunction>
 
-	<cffunction name="AddRecruitToQueue" returntype="void" access="public" output="false">
-		<cfargument name="postID" type="numeric" required="true" />
 
-		<cfset var recruit = GetPost( arguments.postID ) />
-
-		<cfset ArrayAppend( variables.NewRecruitQueue, recruit ) />
-	</cffunction>
-
-	<cffunction name="UpdateRecordWithArmory" returntype="void" access="public" output="false">
-		<cfargument name="armoryXML" type="xml" required="true" />
-		<cfargument name="postID" type="numeric" required="true" />
-
-		<cfset var finalScore 		= 25 /> <!--- you get 25 points just for having posted an armory link --->
-		<cfset var character 			= 0 />
-		<cfset var professionScore = 0 />
-		<cfset var professions 		= 0 />
-		<cfset var gf 					= 0 />
-		<cfset var fre 					= 0 />
-		<cfset var i 					= 0 />
-		<cfset var data 				= StructNew() />
-		<cfset var faction 			= '' />
-		<cfset var class 				= '' />
-		<cfset var classSQL 			= '' />
-		<cfset var resume 			= ''	/>
-		<cfset var infoQuery 		= GetPost( arguments.postID ) />
-
-		<!--- repair server type --->
-		<cfif ( infoQuery.isPvP EQ 0 AND infoQuery.isPvE EQ 0 )>
-
-			<cfset character = XmlSearch( arguments.armoryXML, '//character' )>
-
-			<cfif isArray( character ) AND ArrayLen( character ) AND StructKeyExists( character[1], 'XmlAttributes' )>
-
-				<cfset data = getServerTypeFromTitleByRegion( infoQuery.Region, character[1].XmlAttributes.realm ) />
-
-				<!--- 5 points for having a server type (max:30) --->
-				<cfset finalScore = finalScore + 5 />
-
-			</cfif>
-
-		</cfif>
-
-		<!--- repair faction --->
-		<cfif ( infoQuery.isAlliance EQ 0 AND infoQuery.isHorde eq 0 )>
-
-			<cfset character = XmlSearch( arguments.armoryXML, '//character' ) />
-
-			<cfif IsArray( character ) and ArrayLen( character ) and StructKeyExists( character[1], 'XmlAttributes' )>
-
-				<cfset faction = character[1].XmlAttributes.faction />
-
-				<!--- 5 points for having a faction (max:35) --->
-				<cfset finalScore = finalScore + 5 />
-
-			</cfif>
-
-		</cfif>
-
-		<!--- repair class --->
-		<cfif ClassIsUnknownInQueryRow( infoQuery )>
-
-			<cfset character = XmlSearch( arguments.armoryXML, '//character' )>
-
-			<cfif IsArray( character ) AND ArrayLen( character ) AND StructKeyExists( character[1], 'XmlAttributes' )>
-
-				<cfset class 			= character[1].XmlAttributes.class />
-				<cfset classSQL		= BuildUpdateSQLForSingleClass( class )>
-
-				<!--- 5 points for specifying an individual class (max:40) --->
-				<cfset finalScore 	= finalScore + 5 />
-
-			</cfif>
-
-		</cfif>
-
-		<!--- use armory info to provide additional data to take the score past 50 --->
-		<!--- have you maxed both your professions? --->
-		<cfset professions = XmlSearch( arguments.armoryXML, '//professions' )>
-
-		<cfif IsArray( professions ) and ArrayLen( professions ) and StructKeyExists( professions[1], 'XmlChildren' ) AND ArrayLen( professions[1].XmlChildren )>
-
-			<cfloop from="1" to="#ArrayLen( professions[1].XmlChildren )#" index="i">
-				<cfif professions[1].XmlChildren[i].XmlAttributes.value EQ professions[1].XmlChildren[i].XmlAttributes.max>
-					<cfset professionScore = professionScore + 1 />
-				</cfif>
-			</cfloop>
-
-			<!--- 5 points for each maxxed profession (10 total) (max:50) --->
-			<cfset finalScore = finalScore + ( 5 * professionScore ) />
-
-		</cfif>
-
-		<!--- tack on readability analysis --->
-		<cfset finalScore = UpdateScoreViaReadability( finalScore, infoQuery.PostBody ) />
-
-		<!--- penalize them if they are an idiot --->
-		<cfif infoQuery.isIdiot EQ 1>
-			<cfset finalScore = finalScore - 5 />
-		</cfif>
-
-		<!--- *sigh* you just failed as a guidly, player, and human being --->
-		<cfif finalScore LTE 1>
-			<cfset finalScore = 5 />
-		</cfif>
-
-		<cfquery name="qUpdateLink__WithArmory" datasource="#variables.dsn#">
-			set nocount on;
-			UPDATE
-				Links
-			SET
-				score = #finalScore#<cfif NOT StructIsEmpty( data )>,
-				isPvP = #data.isPvP#,
-				isPvE = #data.isPvE#</cfif><cfif Len( faction )>,
-				<cfif faction IS 'Horde'>isHorde = 1<cfelse>isAlliance = 1</cfif></cfif><cfif Len( classSQL )>,
-				#classSQL#</cfif>
-			WHERE
-				PostID = #arguments.postID#
-		</cfquery>
-
-		<cflog file="Kathune" type="information" text="UpdateRecordWithArmory() - PostID: #arguments.postID# updated with a score of #finalScore#">
-	</cffunction>
-
-	<cffunction name="UpdateRecordWithoutArmory" returntype="void" access="public" output="false">
-		<cfargument name="postID" type="numeric" required="true" />
-
-		<cfset var finalScore = 5 /> <!--- 5 just for showing up --->
-
-		<!--- without a provided armory URL, the maximum score you can achieve is xx --->
-		<cfset var infoQuery = GetPost( arguments.postID ) />
-
-		<!--- validate server type --->
-		<cfif (infoQuery.isPvP EQ 1 OR infoQuery.isPvE EQ 1)>
-			<!--- 5 points for having a server type (max:10) --->
-			<cfset finalScore = finalScore + 5 />
-		</cfif>
-
-		<!--- validate faction --->
-		<cfif (infoQuery.isAlliance EQ 1 OR infoQuery.isHorde EQ 1)>
-			<!--- 5 points for having a faction (max:15) --->
-			<cfset finalScore = finalScore + 5 />
-		</cfif>
-
-		<!--- validate class --->
-		<cfif NOT ClassIsUnknownInQueryRow( infoQuery )>
-			<!--- 5 points for having any class of any type (max:20) --->
-			<cfset finalScore = finalScore + 5 />
-		</cfif>
-
-		<!--- tack on readability analysis (max:70) --->
-		<cfset finalScore = UpdateScoreViaReadability( finalScore, infoQuery.PostBody ) />
-
-		<!--- penalize them if they are an idiot --->
-		<cfif infoQuery.isIdiot EQ 1>
-			<cfset finalScore = finalScore - 5 />
-		</cfif>
-
-		<!--- *sigh* you just failed as a guidly, player, and human being --->
-		<cfif finalScore LTE 1>
-			<cfset finalScore = 5 />
-		</cfif>
-
-		<cfquery name="qUpdateLink__WithoutArmory" datasource="#variables.dsn#">
-			set nocount on;
-			UPDATE
-				Links
-			SET
-				score = #finalScore#
-			WHERE
-				PostID = #arguments.postID#
-		</cfquery>
-
-		<cflog file="Kathune" type="information" text="UpdateRecordWithoutArmory() - PostID: #arguments.postID# updated with a score of #finalScore#">
-	</cffunction>
-
-	<cffunction name="Digest" returntype="void" access="public" output="false"
-				hint="I am responsible performing final scoring on newly entered records of data. When I complete scoring, the record is considered valid and is produced in search results. Your heart will explode.">
-		<cfargument name="maxThreads" type="numeric" required="true" />
-
-		<cfset var tentacle = 0 />
-		<cfset var postBody = '' />
-		<cfset var armoryURL = '' />
-		<cfset var row = 0 />
-		<cfset var id = '' />
-		<cfset var qLinks__FetchAllWithBaseScore = 0 />
-
-		<cfquery name="qLinks__FetchAllWithBaseScore" datasource="#variables.dsn#" blockfactor="#arguments.maxThreads#">
-			SELECT TOP
-				 #arguments.maxThreads# l.*, s.SiteUUID, s.Hook
-			FROM
-				Links l
-			INNER JOIN
-				Sites s ON (l.PostID = s.PostID)
-			WHERE
-				(l.PostBody <> '' AND l.PostBody IS NOT NULL)
-			AND
-				(l.Score = 1)
-			ORDER BY
-				l.PostID
-		</cfquery>
-
-		<cfif qLinks__FetchAllWithBaseScore.RecordCount>
-
-			<cfloop query="qLinks__FetchAllWithBaseScore">
-
-				<cfset id = getTimestamp() />
-
-				<cfthread name="__Digest_thread_#qLinks__FetchAllWithBaseScore.currentRow#_#id#"
-						  row="#qLinks__FetchAllWithBaseScore.currentRow#"
-						  tSiteUUID="#qLinks__FetchAllWithBaseScore.SiteUUID[qLinks__FetchAllWithBaseScore.currentRow]#"
-						  tHook="#qLinks__FetchAllWithBaseScore.Hook[qLinks__FetchAllWithBaseScore.currentRow]#"
-						  tPostID="#qLinks__FetchAllWithBaseScore.PostID[qLinks__FetchAllWithBaseScore.currentRow]#"
-						  tArmoryURL="#qLinks__FetchAllWithBaseScore.ArmoryURL[qLinks__FetchAllWithBaseScore.currentRow]#"
-						  tID="#id#"
-						  action="run">
-
-					<cfset var tentacle = 0 />
-					<cfset var postBody = '' />
-					<cfset var score = 0 />
-					<cfset var xmlData = XmlNew() />
-
-					<cflog file="Kathune" type="information" text="__Digest_thread_#row#_#tID# - Digesting SiteUUID: #tSiteUUID#, Hook: #tHook#, PostID: #tPostID#">
-
-					<!--- does it have an ArmoryURL? --->
-					<cfif Len( tArmoryURL )>
-
-						<!--- attempt to fetch the record --->
-						<cfset xmlData = FetchXmlFromArmory( tArmoryURL ) />
-
-						<!--- if you get a response from the armory, perform the scoring, otherwise, we'll skip this record and it will be re-attempted at a future pass --->
-						<cfif NOT StructIsEmpty( xmlData )>
-
-							<cflog file="Kathune" type="information" text="__Digest_thread_#row#_#tID# - Armory Info Detected for PostID: #tPostID#, calling UpdateRecordWithArmory()">
-
-							<cfset UpdateRecordWithArmory( xmlData, tPostID ) />
-
-							<cfset AddRecruitToQueue( tPostID ) />
-
-						</cfif>
-
-					<cfelse>
-
-						<cflog file="Kathune" type="information" text="__Digest_thread_#row#_#tID# - No Armory Info for PostID: #tPostID#, calling UpdateRecordWithoutArmory()">
-
-						<!--- there is no armory data to speak of, so they'll get the peasant-level rating system applied --->
-						<cfset UpdateRecordWithoutArmory( tPostID ) />
-
-						<cfset AddRecruitToQueue( tPostID ) />
-
-					</cfif>
-
-				</cfthread>
-
-			</cfloop>
-
-		</cfif>
-	</cffunction>
-
-	<cffunction name="Boast" returntype="void" output="false" access="public"
-				hint="I update historical data when appropriate. You will betray your friends.">
-		<cfscript>
-			var NumPosts 				= 0;
-			var NumAlliance 			= 0;
-			var NumHorde 			= 0;
-			var NumPvP 				= 0;
-			var NumPvE 				= 0;
-			var NumIdiots 				= 0;
-			var NumDruids 			= 0;
-			var NumDeathKnights 	= 0;
-			var NumHunters 			= 0;
-			var NumMages 			= 0;
-			var NumPaladins 			= 0;
-			var NumPriests 			= 0;
-			var NumRogues 			= 0;
-			var NumShamans 			= 0;
-			var NumWarlocks 		= 0;
-			var NumWarriors 		= 0;
-			var NumUS 					= 0;
-			var NumEU 					= 0;
-			var NumArmory 			= 0;
-
-			//step 1. find out what last month was, and determine if we have data for that month, which should correlate to the 1st of that month.
-
-			var lastMonthDate 		= DateAdd( "m", -1, now() );
-			var checkDateStart 		= CreateDate( Year( lastMonthDate ), Month( lastMonthDate ), 1 );
-			var checkDateEnd 		= CreateDate( Year( lastMonthDate ), Month( lastMonthDate ), DaysInMonth( lastMonthDate ) );
-		</cfscript>
-
-		<cfquery name="dateCheck" datasource="#variables.dsn#">
-			SELECT
-				HistoryID
-			FROM
-				History
-			WHERE
-				EffectiveDate = #CreateODBCDate(checkDateStart)#
-		</cfquery>
-
-		<cfif NOT dateCheck.RecordCount>
-
-			<!--- it does not exist, so let's load up the stats for the month --->
-			<cfquery name="statOne" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumPosts
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-			</cfquery>
-
-			<cfset NumPosts = statOne.NumPosts />
-
-			<cfquery name="statTwo" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumAlliance
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isAlliance = 1
-			</cfquery>
-
-			<cfset NumAlliance = statTwo.NumAlliance />
-
-			<cfquery name="statThree" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumHorde
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isHorde = 1
-			</cfquery>
-
-			<cfset NumHorde = statThree.NumHorde />
-
-			<cfquery name="statFour" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumPvP
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isPvP = 1
-			</cfquery>
-
-			<cfset NumPvP = statFour.NumPvP />
-
-			<cfquery name="statFive" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumPvE
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isPvE = 1
-			</cfquery>
-
-			<cfset NumPvE = statFive.NumPvE />
-
-			<cfquery name="statSix" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumIdiots
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isIdiot = 1
-			</cfquery>
-
-			<cfset NumIdiots = statSix.NumIdiots />
-
-			<cfquery name="statSeven" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumDruids
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isDruid = 1
-			</cfquery>
-
-			<cfset NumDruids = statSeven.NumDruids />
-
-			<cfquery name="statSevenPointFive" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumDeathKnights
-				FROM
-					LINKS
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isDeathKnight = 1
-			</cfquery>
-
-			<cfset NumDeathKnights = statSevenPointFive.NumDeathKnights />
-
-			<cfquery name="statEight" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumHunters
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isHunter = 1
-			</cfquery>
-
-			<cfset NumHunters = statEight.NumHunters />
-
-			<cfquery name="statNine" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumMages
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isMage = 1
-			</cfquery>
-
-			<cfset NumMages = statNine.NumMages />
-
-			<cfquery name="statTen" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumPaladins
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isPaladin = 1
-			</cfquery>
-
-			<cfset NumPaladins = statTen.NumPaladins />
-
-			<cfquery name="statEleven" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumPriests
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isPriest = 1
-			</cfquery>
-
-			<cfset NumPriests = statEleven.NumPriests />
-
-			<cfquery name="statTwelve" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumRogues
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isRogue = 1
-			</cfquery>
-
-			<cfset NumRogues = statTwelve.NumRogues />
-
-			<cfquery name="statThirteen" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumShamans
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isShaman = 1
-			</cfquery>
-
-			<cfset NumShamans = statThirteen.NumShamans />
-
-			<cfquery name="statFourteen" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumWarlocks
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isWarlock = 1
-			</cfquery>
-
-			<cfset NumWarlocks = statFourteen.NumWarlocks />
-
-			<cfquery name="statFifteen" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumWarriors
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					isWarrior = 1
-			</cfquery>
-
-			<cfset NumWarriors = statFifteen.NumWarriors />
-
-			<cfquery name="statSixteen" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumUS
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					Region = 'US'
-			</cfquery>
-
-			<cfset NumUS = statSixteen.NumUS />
-
-			<cfquery name="statSeventeen" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumEU
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					Region = 'EU-EN'
-			</cfquery>
-
-			<cfset NumEU = statSeventeen.NumEU />
-
-			<cfquery name="statEighteen" datasource="#variables.dsn#">
-				SELECT
-					count(PostID) as NumArmory
-				FROM
-					Links
-				WHERE
-					EffectiveDate >= #CreateODBCDate(checkDateStart)#
-				AND
-					EffectiveDate <= #CreateODBCDate(checkDateEnd)#
-				AND
-					ArmoryURL IS NOT NULL
-				AND
-					ArmoryURL <> ''
-			</cfquery>
-
-			<cfset NumArmory = statEighteen.NumArmory />
-
-			<!--- we've got em! now let's cache them into History --->
-			<cfquery name="ins" datasource="#variables.dsn#">
-				set nocount on;
-				INSERT INTO
-					History (
-						EffectiveDate,
-						NumPosts,
-						NumAlliance,
-						NumHorde,
-						NumPvP,
-						NumPvE,
-						NumIdiots,
-						NumDeathKnights,
-						NumDruids,
-						NumHunters,
-						NumMages,
-						NumPaladins,
-						NumPriests,
-						NumRogues,
-						NumShamans,
-						NumWarlocks,
-						NumWarriors,
-						NumUS,
-						NumEU,
-						NumArmory
-					)
-				VALUES
-					(
-						#CreateODBCDate(checkDateStart)#,
-						#NumPosts#,
-						#NumAlliance#,
-						#NumHorde#,
-						#NumPvP#,
-						#NumPvE#,
-						#NumIdiots#,
-						#NumDeathKnights#,
-						#NumDruids#,
-						#NumHunters#,
-						#NumMages#,
-						#NumPaladins#,
-						#NumPriests#,
-						#NumRogues#,
-						#NumShamans#,
-						#NumWarlocks#,
-						#NumWarriors#,
-						#NumUS#,
-						#NumEU#,
-						#NumArmory#
-					)
-			</cfquery>
-
-		</cfif>
-
-	</cffunction>
-
-	<cffunction name="ExtendTentacles" returntype="void" access="public" output="false"
-				hint="I am responsible for spawning threads for each registered spider URL, firing the spiders, and retrieving the data they collect. Your friends will abandon you.">
-
-		<cfset var i = 0 />
-		<cfset var id = '' />
-
-		<cfloop from="1" to="#variables.httpFetchMaximum#" index="i">
-
-			<cfset variables.activeTentacle = variables.activeTentacle + 1 />
-
-			<cfif variables.activeTentacle GT ArrayLen( variables.tentacles )>
-				<cfset variables.activeTentacle = 1 />
-			</cfif>
-
-			<!--- <cflog file="Kathune" type="information" text="ExtendTentacles() - Spawning thread for tentacle in Array index #variables.activeTentacle#"> --->
-
-			<cfset id = getTimestamp() />
-
-			<cfthread name="__ExtendTentacle_thread#i#_#id#" tentacle="#variables.tentacles[variables.activeTentacle]#" action="run">
-
-				<cfset tentacle.Grab() />
-
-				<!--- <cfset thread.html = tentacle.getHTML() /> ---> <!--- for debugging only --->
-
-				<cfset RetrieveFoodFromTentacle( tentacle ) />
-
-			</cfthread>
-
-		</cfloop>
-
-		<!---
-		DEBUG ONLY:
-		 join threads to master for dumping, only required for debugging/display in this method. In production, Kathune will fire-and-forget threads. --->
-		<!--- <cfthread action="join" name="thread1,thread2,thread3,thread4,thread5" timeout="#evaluate(15*1000*arrayLen(variables.tentacles))#" /> <!--- timeout should become 15*1000*(num threads) --->
-		<cfdump var=#cfthread.thread1#>
-		<cfdump var=#cfthread.thread2#>
-		<cfdump var=#cfthread.thread3#>
-		<cfdump var=#cfthread.thread4#>
-		<cfdump var=#cfthread.thread5#> --->
-		<!--- <cfabort/> --->
-	</cffunction>
-
-	<cffunction name="RetrieveFoodFromTentacle" returntype="void" access="private" output="false"
-				hint="I examine an individual spider for fetched data, confirm that it has people looking for guilds, and insert only those into the db that I have not yet already collected. You are already dead.">
-		<cfargument name="tentacle" type="struct" required="true" />
-
-		<cfset var postArray 	= arguments.tentacle.getPostsAsObjectArray() />
-		<cfset var thisPostObj 	= 0 />
-		<cfset var i 				= 0 />
-
-		<cfloop from="1" to="#ArrayLen( postArray )#" index="i">
-			<cfset thisPostObj = postArray[i] />
-
-			<!--- if the post has been scored as a person looking for a guild, and it doesn't already exist, insert --->
-			<cfif thisPostObj.getScore() GT 0 AND NOT PostExists( arguments.tentacle.getSiteUUID(), thisPostObj.getHookValue() )>
-
-				<cftransaction>
-
-					<cfquery name="qInsert" datasource="#variables.dsn#">
-						set nocount on;
-						insert into
-							Links(
-								PostURL,
-							  	PostTitle,
-							  	PostBody,
-							  	isAlliance,
-							  	isHorde,
-							  	isPvP,
-							  	isPvE,
-							  	isIdiot,
-							  	isDeathKnight,
-							  	isDruid,
-							  	isHunter,
-							  	isMage,
-							  	isPaladin,
-							  	isPriest,
-							  	isRogue,
-							  	isShaman,
-							  	isWarlock,
-							  	isWarrior,
-							  	Score,
-							 	Region,
-							  	ArmoryURL
-							)
-						values
-							(
-								'#thisPostObj.getPostURL()#',
-							   	'#replace(thisPostObj.getPostTitle(),"'","''","ALL")#',
-							   	'#thisPostObj.getPostBody()#',
-							   	#thisPostObj.isAlliance()#,
-							  	 #thisPostObj.isHorde()#,
-							   	#thisPostObj.isPvP()#,
-							   	#thisPostObj.isPvE()#,
-							   	#thisPostObj.isIdiot()#,
-							   	#thisPostObj.isDeathKnight()#,
-							   	#thisPostObj.isDruid()#,
-							   	#thisPostObj.isHunter()#,
-							   	#thisPostObj.isMage()#,
-							   	#thisPostObj.isPaladin()#,
-							   	#thisPostObj.isPriest()#,
-							   	#thisPostObj.isRogue()#,
-							   	#thisPostObj.isShaman()#,
-							   	#thisPostObj.isWarlock()#,
-							   	#thisPostObj.isWarrior()#,
-							   	#thisPostObj.getScore()#,
-							   	'#thisPostObj.getRegion()#',
-							   	'#thisPostObj.getArmoryURL()#'
-							);
-						SELECT
-							@@IDENTITY AS IDENTITY_PKEY;
-					</cfquery>
-
-					<cfset thisPostObj.setPostID( qInsert.IDENTITY_PKEY ) />
-
-					<cfquery name="ins_join" datasource="#variables.dsn#">
-						INSERT INTO
-							Sites (
-								PostID,
-								SiteUUID,
-								Hook
-							)
-						VALUES
-							(
-								#thisPostObj.getPostID()#,
-								'#arguments.tentacle.getSiteUUID()#',
-								'#thisPostObj.getHookValue()#'
-							)
-					</cfquery>
-
-				</cftransaction>
-
-			</cfif>
-
-		</cfloop>
-	</cffunction>
 
 	<cffunction name="getTentacleBySiteUUID" returntype="com.hanzo.cf.Kathune.KathuneTentacle" access="private" output="false">
 		<cfargument name="siteUUID" type="any" required="true" />
