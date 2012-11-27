@@ -1489,555 +1489,596 @@
         </cfloop>
     </cffunction>
 
-
-
-
-	<cffunction name="getTentacleBySiteUUID" returntype="com.hanzo.cf.Kathune.KathuneTentacle" access="private" output="false">
-		<cfargument name="siteUUID" type="any" required="true" />
-
-		<cfset var i = 0 />
-
-		<cfloop from="1" to="#arrayLen(variables.tentacles)#" index="i">
-			<cfif NOT CompareNoCase( variables.tentacles[i].getSiteUUID(), arguments.siteUUID )>
-				<cfreturn variables.tentacles[i] />
-			</cfif>
-		</cfloop>
-
-		<!--- should never happen, but we'll add incase threading causes me grief --->
-		<cfthrow type="Tentacle.NotFound" message="A tentacle with the provided SiteUUID was not found" detail="You have provided a SiteUUID to this function (#arguments.SiteUUID#) which does not match a tentacle in the Kathune::variables.tentacles array." />
-	</cffunction>
-
-	<cffunction name="PostExists" returntype="boolean" access="private" output="false">
-		<cfargument name="siteuuid" type="string" required="true" />
-		<cfargument name="hook" type="string" required="true" />
-
-		<cfset var qTestForPost = 0 />
-
-		<cfquery name="qTestForPost" datasource="#variables.dsn#">
-			SELECT
-				l.PostID
-			FROM
-				Links l
-			INNER JOIN
-				Sites s ON (l.PostID = s.PostID)
-			WHERE
-				s.Hook = '#arguments.hook#'
-			AND
-				s.SiteUUID = '#arguments.siteuuid#'
-		</cfquery>
-
-		<cfreturn ( qTestForPost.RecordCount GT 0 ) />
-	</cffunction>
-
-	<cffunction name="GetPost" returntype="query" access="private" output="false">
-		<cfargument name="postID" type="numeric" required="true" />
-
-		<cfset var qPost__Fetch = 0 />
-
-		<cfquery name="qPost__Fetch" datasource="#variables.dsn#" blockfactor="1">
-			SELECT
-				l.*, s.SiteUUID, s.Hook
-			FROM
-				Links l
-			INNER JOIN
-				Sites s ON (l.PostID = s.PostID)
-			WHERE
-				l.PostID = #arguments.postID#
-		</cfquery>
-
-		<cfreturn qPost__Fetch />
-	</cffunction>
-
-	<cffunction name="GetStatistics" returntype="query" access="public" output="false">
-
-		<cfset var qStatistics__Fetch 	= 0 />
-		<cfset var lastMonthDate 		= DateAdd( "m", -1, now() ) />
-		<cfset var checkDateStart 		= CreateDate( Year( LastMonthDate ), Month( LastMonthDate ), 1 ) />
-
-		<cfquery name="qStatistics__Fetch" datasource="#variables.dsn#" blockfactor="1" cachedWithin="#createTimeSpan(1,0,0,0)#">
-			SELECT
-				*
-			FROM
-				History
-			WHERE
-				EffectiveDate = #CreateODBCDate( checkDateStart )#
-			AND 1=1
-		</cfquery>
-
-		<cfreturn qStatistics__Fetch />
-	</cffunction>
-
-	<cffunction name="GetRSSFeedTitle" returntype="string" access="public" output="false">
-		<cfargument name="fac" type="string" required="false" default="" />
-		<cfargument name="serv" type="string" required="false" default="" />
-		<cfargument name="clas" type="string" required="false" default="" />
-		<cfargument name="regi" type="string" required="false" default="" />
-		<cfargument name="idiotFilter" type="numeric" required="false" default="0" />
-		<cfargument name="maxrows" type="numeric" required="false" default="50" />
-		<cfargument name="page" type="numeric" required="false" default="1" />
-		<cfargument name="keyword" type="string" required="false" default="" />
-
-		<cfscript>
-			var title = '';
-
-			if (len(arguments.regi)) {
-				if (arguments.regi is 'US')
-					title = title & 'US ';
-				else if (arguments.regi is 'EU-EN')
-					title = title & 'Europe ';
-			}
-
-			if (len(arguments.fac)) {
-				if (arguments.fac is 'a')
-					title = title & 'Alliance ';
-				else if (arguments.fac is 'h')
-					title = title & 'Horde ';
-			}
-
-			if (len(arguments.serv)) {
-				if (arguments.serv is 'pvp')
-					title = title & 'PvP ';
-				else if (arguments.serv is 'pve')
-					title = title & 'PvE ';
-			}
-
-			if (len(arguments.clas)) {
-				if (arguments.clas is "rogu")
-					title = title & 'Rogues ';
-				else if (arguments.clas is "deth")
-					title = title & 'Death Knights ';
-				else if (arguments.clas is "drui")
-					title = title & 'Druids ';
-				else if (arguments.clas is "mage")
-					title = title & 'Mages ';
-				else if (arguments.clas is "warr")
-					title = title & 'Warriors ';
-				else if (arguments.clas is "warl")
-					title = title & 'Warlocks ';
-				else if (arguments.clas is "hunt")
-					title = title & 'Hunters ';
-				else if (arguments.clas is "sham")
-					title = title & 'Shamans ';
-				else if (arguments.clas is "pala")
-					title = title & 'Paladins ';
-				else if (arguments.clas is "prie")
-					title = title & 'Priests ';
-			}
-
-			if (arguments.idiotFilter eq 1)
-				title = title & '(No Idiots)';
-
-			// prepend - if there is one at all
-			if (len(title))
-				title = ' - ' & title;
-		</cfscript>
-
-		<cfreturn title />
-	</cffunction>
-
-	<cffunction name="GetRSS" returntype="xml" access="public" output="false">
-		<cfargument name="fac" type="string" required="false" default="" />
-		<cfargument name="serv" type="string" required="false" default="" />
-		<cfargument name="clas" type="string" required="false" default="" />
-		<cfargument name="regi" type="string" required="false" default="" />
-		<cfargument name="idiotFilter" type="numeric" required="false" default="0" />
-		<cfargument name="maxrows" type="numeric" required="false" default="50" />
-		<cfargument name="page" type="numeric" required="false" default="1" />
-		<cfargument name="keyword" type="string" required="false" default="" />
-
-		<cfset var columnMapStruct 	= StructNew() />
-		<cfset var meta 					= StructNew() />
-		<cfset var rssXML 				= '' />
-		<cfset var data 					= GetRecruits( argumentCollection=arguments ) />
-
-		<!--- prep query for RSS --->
-		<cfset QueryAddColumn( data, 'SOURCE', ArrayNew(1) ) />
-		<cfset QueryAddColumn( data, 'SOURCEURL', ArrayNew(1) ) />
-
-		<cfloop query="data">
-			<cfset QuerySetCell( data, 'SOURCE', getTentacleBySiteUUID( data.SiteUUID[data.currentRow] ).getSource(), data.currentRow ) />
-			<cfset QuerySetCell( data, 'SOURCEURL', getTentacleBySiteUUID( data.SiteUUID[data.currentRow] ).getForumURL(), data.currentRow ) />
-		</cfloop>
-
-		<!--- Map the orders column names to the feed query column names. --->
-		<cfset columnMapStruct.title 				= "POSTTITLE" />
-		<cfset columnMapStruct.content 			= "POSTBODY" />
-		<cfset columnMapStruct.publisheddate 	= "EFFECTIVEDATE" />
-		<cfset columnMapStruct.rsslink			= "POSTURL" />
-		<cfset columnMapStruct.source 			= "SOURCE" />
-		<cfset columnMapStruct.sourceURL 		= "SOURCEURL" />
-
-		<!--- Set the feed metadata. --->
-		<cfset meta.title 								= "WoW Lemmings" & GetRSSFeedTitle( argumentCollection=arguments ) />
-		<cfset meta.link 								= "http://www.wowlemmings.com/" />
-		<cfset meta.description 						= "Rebuild your guild." />
-		<cfset meta.version 							= "rss_2.0" />
-
-		<!--- Create the feed. --->
-		<cffeed action="create" query="#data#" properties="#meta#" columnMap="#columnMapStruct#" xmlvar="rssXML">
-
-		<cfreturn XmlParse(rssXML) />
-	</cffunction>
-
-	<cffunction name="GetTotal" returntype="query" output="false" access="public">
-		<cfargument name="fac" type="string" required="false" default="" />
-		<cfargument name="serv" type="string" required="false" default="" />
-		<cfargument name="clas" type="string" required="false" default="" />
-		<cfargument name="regi" type="string" required="false" default="" />
-		<cfargument name="idiotFilter" type="numeric" required="false" default="0" />
-		<cfargument name="maxrows" type="numeric" required="false" default="50" />
-		<cfargument name="page" type="numeric" required="false" default="1" />
-		<cfargument name="keyword" type="string" required="false" default="" />
-
-		<cfset var qTotal__Fetch = 0 />
-
-		<cfquery name="qTotal__Fetch" datasource="#variables.dsn#" blockfactor="#maxrows#" cachedWithin="#createTimeSpan(0,0,30,0)#">  <!--- it's cached based on the timer of the repopulation schedule --->
-			SELECT
-				Count(PostID) as records
-			FROM
-				Links
-			WHERE 0=0
-			<cfif arguments.fac is "a">
-			AND isAlliance = 1
-			<cfelseif arguments.fac is "h">
-			AND isHorde = 1
-			</cfif>
-			<cfif arguments.serv is "pvp">
-			AND isPvP = 1
-			<cfelseif arguments.serv is "pve">
-			AND isPvE = 1
-			</cfif>
-			<cfif arguments.clas is "rogu">
-			AND isRogue = 1
-			<cfelseif arguments.clas is "deth">
-			AND isDeathKnight = 1
-			<cfelseif arguments.clas is "drui">
-			AND isDruid = 1
-			<cfelseif arguments.clas is "mage">
-			AND isMage = 1
-			<cfelseif arguments.clas is "warr">
-			AND isWarrior = 1
-			<cfelseif arguments.clas is "warl">
-			AND isWarlock = 1
-			<cfelseif arguments.clas is "hunt">
-			AND isHunter = 1
-			<cfelseif arguments.clas is "sham">
-			AND isShaman = 1
-			<cfelseif arguments.clas is "pala">
-			AND isPaladin = 1
-			<cfelseif arguments.clas is "prie">
-			AND isPriest = 1
-			</cfif>
-			<cfif arguments.idiotFilter eq 1>
-			AND isIdiot = 0
-			</cfif>
-			<cfif arguments.regi is "us">
-			AND Region = 'US'
-			<cfelseif arguments.regi is "eu-en">
-			AND Region = 'EU-EN'
-			</cfif>
-			<cfif Len( Trim( arguments.keyword ) )>
-			AND ( PostTitle LIKE '%#trim(arguments.keyword)#%' OR CONTAINS( PostBody, '"#trim(arguments.keyword)#"' ) )
-			</cfif>
-				AND Score > 1
-		</cfquery>
-
-		<cfreturn qTotal__Fetch />
-	</cffunction>
-
-	<cffunction name="GetRecruits" returntype="query" output="false" access="public">
-		<cfargument name="fac" type="string" required="false" default="" />
-		<cfargument name="serv" type="string" required="false" default="" />
-		<cfargument name="clas" type="string" required="false" default="" />
-		<cfargument name="regi" type="string" required="false" default="" />
-		<cfargument name="idiotFilter" type="numeric" required="false" default="0" />
-		<cfargument name="maxrows" type="numeric" required="false" default="50" />
-		<cfargument name="page" type="numeric" required="false" default="1" />
-		<cfargument name="keyword" type="string" required="false" default="" />
-
-		<cfset var qRecruits__Fetch = 0 />
-
-		<cfquery name="qRecruits__Fetch" datasource="#variables.dsn#" blockfactor="#maxrows#" cachedWithin="#createTimeSpan(0,0,30,0)#">
-			WITH LinksBlock AS
-			(
-			    SELECT ROW_NUMBER() OVER(ORDER BY EffectiveDate DESC, Links.PostID) AS RowNum, Links.*, Sites.SiteUUID, Sites.Hook
-			    FROM Links
-			    	INNER JOIN Sites ON (Links.PostID = Sites.PostID)
-				WHERE 0=0
-				<cfif arguments.fac is "a">
-					AND isAlliance = 1
-				<cfelseif arguments.fac is "h">
-					AND isHorde = 1
-				</cfif>
-				<cfif arguments.serv is "pvp">
-					AND isPvP = 1
-				<cfelseif arguments.serv is "pve">
-					AND isPvE = 1
-				</cfif>
-				<cfif arguments.clas is "rogu">
-					AND isRogue = 1
-				<cfelseif arguments.clas is "deth">
-					AND isDeathKnight = 1
-				<cfelseif arguments.clas is "drui">
-					AND isDruid = 1
-				<cfelseif arguments.clas is "mage">
-					AND isMage = 1
-				<cfelseif arguments.clas is "warr">
-					AND isWarrior = 1
-				<cfelseif arguments.clas is "warl">
-					AND isWarlock = 1
-				<cfelseif arguments.clas is "hunt">
-					AND isHunter = 1
-				<cfelseif arguments.clas is "sham">
-					AND isShaman = 1
-				<cfelseif arguments.clas is "pala">
-					AND isPaladin = 1
-				<cfelseif arguments.clas is "prie">
-					AND isPriest = 1
-				</cfif>
-				<cfif arguments.idiotFilter eq 1>
-					AND isIdiot = 0
-				</cfif>
-				<cfif arguments.regi is "us">
-					AND Region = 'US'
-				<cfelseif arguments.regi is "eu-en">
-					AND Region = 'EU-EN'
-				</cfif>
-				<cfif Len( Trim( arguments.keyword ) )>
-					AND ( PostTitle LIKE '%#trim(arguments.keyword)#%' OR CONTAINS( PostBody, '"#trim(arguments.keyword)#"' ) )
-				</cfif>
-				AND Score > 1
-			)
-
-			SELECT
-				*
-			FROM
-				LinksBlock
-			WHERE
-				RowNum
-			BETWEEN
-				(#arguments.page# - 1) * #arguments.maxrows# + 1
-			AND
-				#arguments.page# * #arguments.maxrows#
-			ORDER BY
-				EffectiveDate DESC
-		</cfquery>
-
-		<cfreturn qRecruits__Fetch />
-	</cffunction>
-
-	<cffunction name="getUserAgent" returntype="string" output="false" access="public">
-		<cfargument name="isStealthed" type="boolean" required="false" default="false" />
-
-		<cfif arguments.isStealthed>
-			<cfreturn 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.1) Gecko/2008070208 Firefox/3.0.1' />
-		<cfelse>
-			<cfreturn variables.user_agent />
-		</cfif>
-	</cffunction>
-
-	<cffunction name="produceAccessToken" returntype="void" output="false" access="public">
-		<cfargument name="verifier" type="string" required="true" />
-
-		<cfset var returnData 	= variables.twitter.getAccessToken(
-				requestToken		= 	variables.oAuthToken,
-				requestSecret		= 	variables.oAuthTokenSecret,
-				verifier				=	arguments.verifier
-			) />
-
-		<cfif ( returnData.success )>
-			<cfset variables.accessToken 	= returnData.token />
-			<cfset variables.accessSecret 	= returnData.token_secret />
-			<cfset variables.screen_name 	= returnData.screen_name />
-			<cfset variables.user_id 		= returnData.user_id />
-
-			<cfset variables.twitter.setFinalAccessDetails(
-					oauthToken			= 	variables.accessToken,
-					oauthTokenSecret	=	variables.accessSecret,
-					userAccountName	=	variables.screen_name
-				) />
-		</cfif>
-	</cffunction>
-
-	<!--- UTILITIES --->
-	<cffunction name="getClassFromTerm" returntype="string" access="public" output="false">
-		<cfargument name="term" type="string" required="true" />
-
-		<cfswitch expression="#arguments.term#">
-			<cfcase value="deth">
-				<cfreturn "Death Knight" />
-			</cfcase>
-			<cfcase value="drui">
-				<cfreturn "Druid" />
-			</cfcase>
-			<cfcase value="hunt">
-				<cfreturn "Hunter" />
-			</cfcase>
-			<cfcase value="mage">
-				<cfreturn "Mage" />
-			</cfcase>
-			<cfcase value="pala">
-				<cfreturn "Paladin" />
-			</cfcase>
-			<cfcase value="prie">
-				<cfreturn "Priest" />
-			</cfcase>
-			<cfcase value="rogu">
-				<cfreturn "Rogue" />
-			</cfcase>
-			<cfcase value="sham">
-				<cfreturn "Shaman" />
-			</cfcase>
-			<cfcase value="warl">
-				<cfreturn "Warlock" />
-			</cfcase>
-			<cfcase value="warr">
-				<cfreturn "Warrior" />
-			</cfcase>
-			<cfdefaultcase>
-				<cfreturn "Player" /><!--- should NEVER happen --->
-			</cfdefaultcase>
-		</cfswitch>
-	</cffunction>
-
-	<cffunction name="getTimestamp" returntype="string" access="public" output="false">
-
-		<cfreturn DateFormat( now(), 'yyyymmdd' ) & TimeFormat( now(), 'HHmmssL') />
-	</cffunction>
-
-	<cffunction name="getServerTypeFromTitleByRegion" returntype="struct" output="false" access="public">
-		<cfargument name="region" type="string" required="true" />
-		<cfargument name="txt" type="string" required="true" />
-
-		<cfscript>
-		var data 				= StructNew();
-		var exclusions 		= "Vashj|Kael|Hyjal";
-		var dbDomain 		= '';
-
-		data.isPvP 			= 0;
-		data.isPvE 			= 0;
-		</cfscript>
-
-		<cfif arguments.region IS "EU-EN">
-			<cfset dbDomain = 'EU-EN'>
-		<cfelse>
-			<cfset dbDomain = 'US'>
-		</cfif>
-
-		<cfquery name="qryServers" datasource="#variables.dsn#" cachedwithin="#createTimeSpan(0,8,0,0)#">
-			SELECT
-				ServerName, ServerRegExp, ServerType
-			FROM
-				Servers
-			WHERE
-				Region = '#dbDomain#'
-			ORDER BY
-				ServerName
-		</cfquery>
-
-		<cfloop query="qryServers">
-			<cfif FindNoCase( qryServers.ServerName[currentRow], arguments.txt ) OR
-					( Len( qryServers.ServerRegExp[currentRow] ) and ReFindNoCase( qryServers.ServerRegExp[currentRow], arguments.txt) )>
-				<!--- server name found! flag the type appropriately --->
-
-				<!--- check exclusions first --->
-				<cfif ReFindNoCase( exclusions, arguments.txt )>
-					<!--- sorry, i can't tell if it's a server name or if you're talking about your personal raid progression...END-OF-LINE --->
-					<cfbreak />
-				</cfif>
-
-				<!--- ELSE, we have a winner, so use the lookup and flag appropriately --->
-				<cfif Find( "PvP", ServerType[currentRow] )>
-					<cfset data.isPvP = 1 />
-				<cfelse>
-					<cfset data.isPvE = 1 />
-				</cfif>
-
-				<cfbreak /> <!--- cut out of the loop now to save cycles --->
-			</cfif>
-		</cfloop>
-
-		<cfreturn data />
-	</cffunction>
-
-	<!--- 	/**
-	 * Strip xml-like tags from a string when they are within or not within a list of tags.
-	 *
-	 * @param stripmode 	 A string, disallow or allow. Specifies if the list of tags in the mytags attribute is a list of tags to allow or disallow. (Required)
-	 * @param mytags 	 List of tags to either allow or disallow. (Required)
-	 * @param mystring 	 The string to check. (Required)
-	 * @param findonly 	 Boolean value. If true, returns the first match. If false, all instances are replaced. (Optional)
-	 * @return Returns either a string or the first instance of a match.
-	 * @author Isaac Dealey (info@turnkey.to)
-	 * @version 2, September 22, 2004
-	 */
- 	--->
-	<cffunction name="stripTags" returntype="string" access="public" output="false">
-		<cfargument name="stripmode" type="string" required="true" />
-		<cfargument name="mytags" type="string" required="true" />
-		<cfargument name="mystring" type="string" required="true" />
-		<cfargument name="findonly" type="boolean" required="false" default="false" />
-
-		<cfscript>
-		var spanquotes = "([^"">]*""[^""]*"")*";
-		var spanstart = "[[:space:]]*/?[[:space:]]*";
-		var endstring = "[^>$]*?(>|$)";
-		var x = 1;
-		var currenttag = structNew();
-		var subex = "";
-		var cfversion = iif(structKeyExists(GetFunctionList(),"getPageContext"), 6, 5);
-		var backref = "\\1"; // this backreference works in cf 5 but not cf mx
-		var rexlimit = len(mystring);
-
-		if (arraylen(arguments) gt 3) { findonly = arguments[4]; }
-		if (cfversion gt 5) { backref = "\#backref#"; } // fix backreference for mx and later cf versions
-		else { rexlimit = 19000; } // limit regular expression searches to 19000 characters to support CF 5 regex character limit
-
-		if (len(trim(mystring))) {
-			// initialize defaults for examining this string
-			currenttag.pos = ListToArray("0");
-			currenttag.len = ListToArray("0");
-
-			mytags = ArrayToList(ListToArray(mytags)); // remove any empty items in the list
-			if (len(trim(mytags))) {
-				// turn the comma delimited list of tags with * as a wildcard into a regular expression
-				mytags = REReplace(mytags,"[[:space:]]","","ALL");
-				mytags = REReplace(mytags,"([[:punct:]])",backref,"ALL");
-				mytags = Replace(mytags,"\*","[^$>[:space:]]*","ALL");
-				mytags = Replace(mytags,"\,","[$>[:space:]]|","ALL");
-				mytags = "#mytags#[$>[:space:]]";
-			} else { mytags = "$"; } // set the tag list to end of string to evaluate the "allow nothing" condition
-
-			// loop over the string
-			for (x = 1; x gt 0 and x lt len(mystring); x = x + currenttag.pos[1] + currenttag.len[1] -1)
-			{
-				// find the next tag within rexlimit characters of the starting point
-				currenttag = REFind("<#spanquotes##endstring#",mid(mystring,x,rexlimit),1,true);
-				if (currenttag.pos[1])
-				{
-					// if a tag was found, compare it to the regular expression
-					subex = mid(mystring,x + currenttag.pos[1] -1,currenttag.len[1]);
-					if (stripmode is "allow" XOR REFindNoCase("^<#spanstart#(#mytags#)",subex,1,false) eq 1)
-					{
-						if (findonly) { return subex; } // return invalid tag as an error message
-						else { // remove the invalid tag from the string
-							myString = RemoveChars(myString,x + currenttag.pos[1] -1,currenttag.len[1]);
-							currenttag.len[1] = 0; // set the length of the tag string found to zero because it was removed
-						}
-					}
-				}
-				// no tag was found within rexlimit characters
-				// move to the next block of rexlimit characters -- CF 5 regex limitation
-				else { currenttag.pos[1] = rexlimit; }
-			}
-		}
-		if (findonly) { return ""; } // return an empty string indicating no invalid tags found
-		else { return mystring; } // return the new string discluding any invalid tags
-		</cfscript>
-	</cffunction>
-
-	<cffunction name="dumpInternals" output="true" access="public" returntype="void">
-		<cfdump var=#variables#>
-	</cffunction>
+    <cffunction name="getTentacleBySiteUUID" returntype="com.hanzo.cf.Kathune.KathuneTentacle" access="private" output="false">
+        <cfargument name="siteUUID" type="any" required="true" />
+
+        <cfset var i = 0 />
+
+        <cfloop from="1" to="#arrayLen(variables.tentacles)#" index="i">
+            <cfif NOT CompareNoCase( variables.tentacles[i].getSiteUUID(), arguments.siteUUID )>
+                <cfreturn variables.tentacles[i] />
+            </cfif>
+        </cfloop>
+
+        <!--- should never happen, but we'll add incase threading causes me grief --->
+        <cfthrow type="Tentacle.NotFound" message="A tentacle with the provided SiteUUID was not found" detail="You have provided a SiteUUID to this function (#arguments.SiteUUID#) which does not match a tentacle in the Kathune::variables.tentacles array." />
+    </cffunction>
+
+    <cffunction name="PostExists" returntype="boolean" access="private" output="false">
+        <cfargument name="siteuuid" type="string" required="true" />
+        <cfargument name="hook" type="string" required="true" />
+
+        <cfset var qTestForPost = 0 />
+
+        <cfquery name="qTestForPost" datasource="#variables.dsn#">
+            SELECT
+                l.PostID
+            FROM
+                Links l
+            INNER JOIN
+                Sites s ON (l.PostID = s.PostID)
+            WHERE
+                s.Hook = '#arguments.hook#'
+            AND
+                s.SiteUUID = '#arguments.siteuuid#'
+        </cfquery>
+
+        <cfreturn ( qTestForPost.RecordCount GT 0 ) />
+    </cffunction>
+
+    <cffunction name="GetPost" returntype="query" access="private" output="false">
+        <cfargument name="postID" type="numeric" required="true" />
+
+        <cfset var qPost__Fetch = 0 />
+
+        <cfquery name="qPost__Fetch" datasource="#variables.dsn#" blockfactor="1">
+            SELECT
+                l.*, s.SiteUUID, s.Hook
+            FROM
+                Links l
+            INNER JOIN
+                Sites s ON (l.PostID = s.PostID)
+            WHERE
+                l.PostID = #arguments.postID#
+        </cfquery>
+
+        <cfreturn qPost__Fetch />
+    </cffunction>
+
+    <cffunction name="GetStatistics" returntype="query" access="public" output="false">
+
+        <cfset var qStatistics__Fetch = 0 />
+        <cfset var lastMonthDate = DateAdd( "m", -1, now() ) />
+        <cfset var checkDateStart = CreateDate( Year( LastMonthDate ), Month( LastMonthDate ), 1 ) />
+
+        <cfquery name="qStatistics__Fetch" datasource="#variables.dsn#" blockfactor="1" cachedWithin="#CreateTimeSpan( 1, 0, 0, 0 )#">
+            SELECT
+                *
+            FROM
+                History
+            WHERE
+                EffectiveDate = #CreateODBCDate( checkDateStart )#
+            AND 1=1
+        </cfquery>
+
+        <cfreturn qStatistics__Fetch />
+    </cffunction>
+
+    <cffunction name="GetRSSFeedTitle" returntype="string" access="public" output="false">
+        <cfargument name="fac" type="string" required="false" default="" />
+        <cfargument name="serv" type="string" required="false" default="" />
+        <cfargument name="clas" type="string" required="false" default="" />
+        <cfargument name="regi" type="string" required="false" default="" />
+        <cfargument name="idiotFilter" type="numeric" required="false" default="0" />
+        <cfargument name="maxrows" type="numeric" required="false" default="50" />
+        <cfargument name="page" type="numeric" required="false" default="1" />
+        <cfargument name="keyword" type="string" required="false" default="" />
+
+        <cfscript>
+            var title = '';
+
+            if (len(arguments.regi)) {
+                if (arguments.regi is 'US')
+                    title = title & 'US ';
+                else if (arguments.regi is 'EU-EN')
+                    title = title & 'Europe ';
+            }
+
+            if (len(arguments.fac)) {
+                if (arguments.fac is 'a')
+                    title = title & 'Alliance ';
+                else if (arguments.fac is 'h')
+                    title = title & 'Horde ';
+            }
+
+            if (len(arguments.serv)) {
+                if (arguments.serv is 'pvp')
+                    title = title & 'PvP ';
+                else if (arguments.serv is 'pve')
+                    title = title & 'PvE ';
+            }
+
+            if (len(arguments.clas)) {
+                if (arguments.clas is "rogu")
+                    title = title & 'Rogues ';
+                else if (arguments.clas is "deth")
+                    title = title & 'Death Knights ';
+                else if (arguments.clas is "drui")
+                    title = title & 'Druids ';
+                else if (arguments.clas is "mage")
+                    title = title & 'Mages ';
+                else if (arguments.clas is "warr")
+                    title = title & 'Warriors ';
+                else if (arguments.clas is "warl")
+                    title = title & 'Warlocks ';
+                else if (arguments.clas is "hunt")
+                    title = title & 'Hunters ';
+                else if (arguments.clas is "sham")
+                    title = title & 'Shamans ';
+                else if (arguments.clas is "pala")
+                    title = title & 'Paladins ';
+                else if (arguments.clas is "prie")
+                    title = title & 'Priests ';
+            }
+
+            if (arguments.idiotFilter eq 1)
+                title = title & '(No Idiots)';
+
+            // prepend - if there is one at all
+            if (len(title))
+                title = ' - ' & title;
+        </cfscript>
+
+        <cfreturn title />
+    </cffunction>
+
+    <cffunction name="GetRSS" returntype="xml" access="public" output="false">
+        <cfargument name="fac" type="string" required="false" default="" />
+        <cfargument name="serv" type="string" required="false" default="" />
+        <cfargument name="clas" type="string" required="false" default="" />
+        <cfargument name="regi" type="string" required="false" default="" />
+        <cfargument name="idiotFilter" type="numeric" required="false" default="0" />
+        <cfargument name="maxrows" type="numeric" required="false" default="50" />
+        <cfargument name="page" type="numeric" required="false" default="1" />
+        <cfargument name="keyword" type="string" required="false" default="" />
+
+        <cfset var columnMapStruct = StructNew() />
+        <cfset var meta = StructNew() />
+        <cfset var rssXML = '' />
+        <cfset var data = GetRecruits( argumentCollection=arguments ) />
+
+        <!--- prep query for RSS --->
+        <cfset QueryAddColumn( data, 'SOURCE', ArrayNew(1) ) />
+        <cfset QueryAddColumn( data, 'SOURCEURL', ArrayNew(1) ) />
+
+        <cfloop query="data">
+            <cfset QuerySetCell( data, 'SOURCE', getTentacleBySiteUUID( data.SiteUUID[data.currentRow] ).getSource(), data.currentRow ) />
+            <cfset QuerySetCell( data, 'SOURCEURL', getTentacleBySiteUUID( data.SiteUUID[data.currentRow] ).getForumURL(), data.currentRow ) />
+        </cfloop>
+
+        <!--- Map the orders column names to the feed query column names. --->
+        <cfset columnMapStruct.title = "POSTTITLE" />
+        <cfset columnMapStruct.content = "POSTBODY" />
+        <cfset columnMapStruct.publisheddate = "EFFECTIVEDATE" />
+        <cfset columnMapStruct.rsslink = "POSTURL" />
+        <cfset columnMapStruct.source = "SOURCE" />
+        <cfset columnMapStruct.sourceURL = "SOURCEURL" />
+
+        <!--- Set the feed metadata. --->
+        <cfset meta.title = "WoW Lemmings" & GetRSSFeedTitle( argumentCollection=arguments ) />
+        <cfset meta.link = "http://www.wowlemmings.com/" />
+        <cfset meta.description = "Rebuild your guild." />
+        <cfset meta.version = "rss_2.0" />
+
+        <!--- Create the feed. --->
+        <cffeed action="create" query="#data#" properties="#meta#" columnMap="#columnMapStruct#" xmlvar="rssXML">
+
+        <cfreturn XmlParse(rssXML) />
+    </cffunction>
+
+    <cffunction name="GetTotal" returntype="query" output="false" access="public">
+        <cfargument name="fac" type="string" required="false" default="" />
+        <cfargument name="serv" type="string" required="false" default="" />
+        <cfargument name="clas" type="string" required="false" default="" />
+        <cfargument name="regi" type="string" required="false" default="" />
+        <cfargument name="idiotFilter" type="numeric" required="false" default="0" />
+        <cfargument name="maxrows" type="numeric" required="false" default="50" />
+        <cfargument name="page" type="numeric" required="false" default="1" />
+        <cfargument name="keyword" type="string" required="false" default="" />
+
+        <cfset var qTotal__Fetch = 0 />
+
+        <cfquery name="qTotal__Fetch" datasource="#variables.dsn#" blockfactor="#maxrows#" cachedWithin="#CreateTimeSpan( 0, 0, 30, 0 )#">  <!--- it's cached based on the timer of the repopulation schedule --->
+            SELECT
+                Count(PostID) as records
+            FROM
+                Links
+            WHERE
+                0=0
+            <cfif arguments.fac is "a">
+            AND
+                isAlliance = 1
+            <cfelseif arguments.fac is "h">
+            AND
+                isHorde = 1
+            </cfif>
+            <cfif arguments.serv is "pvp">
+            AND
+                isPvP = 1
+            <cfelseif arguments.serv is "pve">
+            AND
+                isPvE = 1
+            </cfif>
+            <cfif arguments.clas is "rogu">
+            AND
+                isRogue = 1
+            <cfelseif arguments.clas is "deth">
+            AND
+                isDeathKnight = 1
+            <cfelseif arguments.clas is "drui">
+            AND
+                isDruid = 1
+            <cfelseif arguments.clas is "mage">
+            AND
+                isMage = 1
+            <cfelseif arguments.clas is "warr">
+            AND
+                isWarrior = 1
+            <cfelseif arguments.clas is "warl">
+            AND
+                isWarlock = 1
+            <cfelseif arguments.clas is "hunt">
+            AND
+                isHunter = 1
+            <cfelseif arguments.clas is "sham">
+            AND
+                isShaman = 1
+            <cfelseif arguments.clas is "pala">
+            AND
+                isPaladin = 1
+            <cfelseif arguments.clas is "prie">
+            AND
+                isPriest = 1
+            </cfif>
+            <cfif arguments.idiotFilter eq 1>
+            AND
+                isIdiot = 0
+            </cfif>
+            <cfif arguments.regi is "us">
+            AND
+                Region = 'US'
+            <cfelseif arguments.regi is "eu-en">
+            AND
+                Region = 'EU-EN'
+            </cfif>
+            <cfif Len( Trim( arguments.keyword ) )>
+            AND
+                ( PostTitle LIKE '%#trim(arguments.keyword)#%' OR CONTAINS( PostBody, '"#trim(arguments.keyword)#"' ) )
+            </cfif>
+            AND
+                Score > 1
+        </cfquery>
+
+        <cfreturn qTotal__Fetch />
+    </cffunction>
+
+    <cffunction name="GetRecruits" returntype="query" output="false" access="public">
+        <cfargument name="fac" type="string" required="false" default="" />
+        <cfargument name="serv" type="string" required="false" default="" />
+        <cfargument name="clas" type="string" required="false" default="" />
+        <cfargument name="regi" type="string" required="false" default="" />
+        <cfargument name="idiotFilter" type="numeric" required="false" default="0" />
+        <cfargument name="maxrows" type="numeric" required="false" default="50" />
+        <cfargument name="page" type="numeric" required="false" default="1" />
+        <cfargument name="keyword" type="string" required="false" default="" />
+
+        <cfset var qRecruits__Fetch = 0 />
+
+        <cfquery name="qRecruits__Fetch" datasource="#variables.dsn#" blockfactor="#maxrows#" cachedWithin="#CreateTimeSpan( 0, 0, 30, 0 )#">
+        WITH LinksBlock AS
+            (
+                SELECT
+                    ROW_NUMBER() OVER(ORDER BY EffectiveDate DESC, Links.PostID) AS RowNum, Links.*, Sites.SiteUUID, Sites.Hook
+                FROM
+                    Links
+                INNER JOIN
+                    Sites ON (Links.PostID = Sites.PostID)
+                WHERE
+                    0=0
+                <cfif arguments.fac is "a">
+                AND
+                    isAlliance = 1
+                <cfelseif arguments.fac is "h">
+                AND
+                    isHorde = 1
+                </cfif>
+                <cfif arguments.serv is "pvp">
+                AND
+                    isPvP = 1
+                <cfelseif arguments.serv is "pve">
+                AND
+                    isPvE = 1
+                </cfif>
+                <cfif arguments.clas is "rogu">
+                AND
+                    isRogue = 1
+                <cfelseif arguments.clas is "deth">
+                AND
+                    isDeathKnight = 1
+                <cfelseif arguments.clas is "drui">
+                AND
+                    isDruid = 1
+                <cfelseif arguments.clas is "mage">
+                AND
+                    isMage = 1
+                <cfelseif arguments.clas is "warr">
+                AND
+                    isWarrior = 1
+                <cfelseif arguments.clas is "warl">
+                AND
+                    isWarlock = 1
+                <cfelseif arguments.clas is "hunt">
+                AND
+                    isHunter = 1
+                <cfelseif arguments.clas is "sham">
+                AND
+                    isShaman = 1
+                <cfelseif arguments.clas is "pala">
+                AND
+                    isPaladin = 1
+                <cfelseif arguments.clas is "prie">
+                AND
+                    isPriest = 1
+                </cfif>
+                <cfif arguments.idiotFilter eq 1>
+                AND
+                    isIdiot = 0
+                </cfif>
+                <cfif arguments.regi is "us">
+                AND
+                    Region = 'US'
+                <cfelseif arguments.regi is "eu-en">
+                AND
+                    Region = 'EU-EN'
+                </cfif>
+                <cfif Len( Trim( arguments.keyword ) )>
+                AND (
+                    PostTitle LIKE '%#trim(arguments.keyword)#%' OR CONTAINS( PostBody, '"#trim(arguments.keyword)#"' ) )
+                </cfif>
+                AND
+                    Score > 1
+            )
+
+            SELECT
+                *
+            FROM
+                LinksBlock
+            WHERE
+                RowNum
+            BETWEEN
+                (#arguments.page# - 1) * #arguments.maxrows# + 1
+            AND
+                #arguments.page# * #arguments.maxrows#
+            ORDER BY
+                EffectiveDate DESC
+        </cfquery>
+
+        <cfreturn qRecruits__Fetch />
+    </cffunction>
+
+    <cffunction name="getUserAgent" returntype="string" output="false" access="public">
+        <cfargument name="isStealthed" type="boolean" required="false" default="false" />
+
+        <cfif arguments.isStealthed>
+            <cfreturn 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.1) Gecko/2008070208 Firefox/3.0.1' />
+        <cfelse>
+            <cfreturn variables.user_agent />
+        </cfif>
+    </cffunction>
+
+    <cffunction name="produceAccessToken" returntype="void" output="false" access="public">
+        <cfargument name="verifier" type="string" required="true" />
+
+        <cfset var returnData = variables.twitter.getAccessToken(
+                requestToken = variables.oAuthToken,
+                requestSecret = variables.oAuthTokenSecret,
+                verifier = arguments.verifier
+            ) />
+
+        <cfif ( returnData.success )>
+            <cfset variables.accessToken 	= returnData.token />
+            <cfset variables.accessSecret 	= returnData.token_secret />
+            <cfset variables.screen_name 	= returnData.screen_name />
+            <cfset variables.user_id 		= returnData.user_id />
+
+            <cfset variables.twitter.setFinalAccessDetails(
+                    oauthToken = variables.accessToken,
+                    oauthTokenSecret = variables.accessSecret,
+                    userAccountName = variables.screen_name
+                ) />
+        </cfif>
+    </cffunction>
+
+    <!--- UTILITIES --->
+    <cffunction name="getClassFromTerm" returntype="string" access="public" output="false">
+        <cfargument name="term" type="string" required="true" />
+
+        <cfswitch expression="#arguments.term#">
+            <cfcase value="deth">
+                <cfreturn "Death Knight" />
+            </cfcase>
+            <cfcase value="drui">
+                <cfreturn "Druid" />
+            </cfcase>
+            <cfcase value="hunt">
+                <cfreturn "Hunter" />
+            </cfcase>
+            <cfcase value="mage">
+                <cfreturn "Mage" />
+            </cfcase>
+            <cfcase value="pala">
+                <cfreturn "Paladin" />
+            </cfcase>
+            <cfcase value="prie">
+                <cfreturn "Priest" />
+            </cfcase>
+            <cfcase value="rogu">
+                <cfreturn "Rogue" />
+            </cfcase>
+            <cfcase value="sham">
+                <cfreturn "Shaman" />
+            </cfcase>
+            <cfcase value="warl">
+                <cfreturn "Warlock" />
+            </cfcase>
+            <cfcase value="warr">
+                <cfreturn "Warrior" />
+            </cfcase>
+            <cfdefaultcase>
+                <cfreturn "Player" /><!--- should NEVER happen --->
+            </cfdefaultcase>
+        </cfswitch>
+    </cffunction>
+
+    <cffunction name="getTimestamp" returntype="string" access="public" output="false">
+
+        <cfreturn DateFormat( Now(), 'yyyymmdd' ) & TimeFormat( Now(), 'HHmmssL' ) />
+    </cffunction>
+
+    <cffunction name="getServerTypeFromTitleByRegion" returntype="struct" output="false" access="public">
+        <cfargument name="region" type="string" required="true" />
+        <cfargument name="txt" type="string" required="true" />
+
+        <cfscript>
+            var data = StructNew();
+            var exclusions = "Vashj|Kael|Hyjal";
+            var dbDomain = '';
+
+            data.isPvP = 0;
+            data.isPvE = 0;
+        </cfscript>
+
+        <cfif arguments.region IS "EU-EN">
+            <cfset dbDomain = 'EU-EN' />
+        <cfelse>
+            <cfset dbDomain = 'US' />
+        </cfif>
+
+        <cfquery name="qryServers" datasource="#variables.dsn#" cachedwithin="#CreateTimeSpan( 0, 8, 0, 0 )#">
+            SELECT
+                ServerName, ServerRegExp, ServerType
+            FROM
+                Servers
+            WHERE
+                Region = '#dbDomain#'
+            ORDER BY
+                ServerName
+        </cfquery>
+
+        <cfloop query="qryServers">
+            <cfif FindNoCase( qryServers.ServerName[currentRow], arguments.txt ) OR
+                    ( Len( qryServers.ServerRegExp[currentRow] ) AND ReFindNoCase( qryServers.ServerRegExp[currentRow], arguments.txt) )>
+
+                <!--- server name found! flag the type appropriately --->
+                <!--- check exclusions first --->
+                <cfif ReFindNoCase( exclusions, arguments.txt )>
+                    <!--- sorry, i can't tell if it's a server name or if you're talking about your personal raid progression...END-OF-LINE --->
+                    <cfbreak />
+                </cfif>
+
+                <!--- ELSE, we have a winner, so use the lookup and flag appropriately --->
+                <cfif Find( "PvP", ServerType[currentRow] )>
+                    <cfset data.isPvP = 1 />
+                <cfelse>
+                    <cfset data.isPvE = 1 />
+                </cfif>
+
+                <cfbreak /> <!--- cut out of the loop now to save cycles --->
+            </cfif>
+        </cfloop>
+
+        <cfreturn data />
+    </cffunction>
+
+    <!--- 	/**
+     * Strip xml-like tags from a string when they are within or not within a list of tags.
+     *
+     * @param stripmode 	 A string, disallow or allow. Specifies if the list of tags in the mytags attribute is a list of tags to allow or disallow. (Required)
+     * @param mytags 	 List of tags to either allow or disallow. (Required)
+     * @param mystring 	 The string to check. (Required)
+     * @param findonly 	 Boolean value. If true, returns the first match. If false, all instances are replaced. (Optional)
+     * @return Returns either a string or the first instance of a match.
+     * @author Isaac Dealey (info@turnkey.to)
+     * @version 2, September 22, 2004
+     */
+    --->
+    <cffunction name="stripTags" returntype="string" access="public" output="false">
+        <cfargument name="stripmode" type="string" required="true" />
+        <cfargument name="mytags" type="string" required="true" />
+        <cfargument name="mystring" type="string" required="true" />
+        <cfargument name="findonly" type="boolean" required="false" default="false" />
+
+        <cfscript>
+        var spanquotes = "([^"">]*""[^""]*"")*";
+        var spanstart = "[[:space:]]*/?[[:space:]]*";
+        var endstring = "[^>$]*?(>|$)";
+        var x = 1;
+        var currenttag = structNew();
+        var subex = "";
+        var cfversion = iif(structKeyExists(GetFunctionList(),"getPageContext"), 6, 5);
+        var backref = "\\1"; // this backreference works in cf 5 but not cf mx
+        var rexlimit = len(mystring);
+
+        if (arraylen(arguments) gt 3) { findonly = arguments[4]; }
+        if (cfversion gt 5) { backref = "\#backref#"; } // fix backreference for mx and later cf versions
+        else { rexlimit = 19000; } // limit regular expression searches to 19000 characters to support CF 5 regex character limit
+
+        if (len(trim(mystring))) {
+            // initialize defaults for examining this string
+            currenttag.pos = ListToArray("0");
+            currenttag.len = ListToArray("0");
+
+            mytags = ArrayToList(ListToArray(mytags)); // remove any empty items in the list
+            if (len(trim(mytags))) {
+                // turn the comma delimited list of tags with * as a wildcard into a regular expression
+                mytags = REReplace(mytags,"[[:space:]]","","ALL");
+                mytags = REReplace(mytags,"([[:punct:]])",backref,"ALL");
+                mytags = Replace(mytags,"\*","[^$>[:space:]]*","ALL");
+                mytags = Replace(mytags,"\,","[$>[:space:]]|","ALL");
+                mytags = "#mytags#[$>[:space:]]";
+            } else { mytags = "$"; } // set the tag list to end of string to evaluate the "allow nothing" condition
+
+            // loop over the string
+            for (x = 1; x gt 0 and x lt len(mystring); x = x + currenttag.pos[1] + currenttag.len[1] -1)
+            {
+                // find the next tag within rexlimit characters of the starting point
+                currenttag = REFind("<#spanquotes##endstring#",mid(mystring,x,rexlimit),1,true);
+                if (currenttag.pos[1])
+                {
+                    // if a tag was found, compare it to the regular expression
+                    subex = mid(mystring,x + currenttag.pos[1] -1,currenttag.len[1]);
+                    if (stripmode is "allow" XOR REFindNoCase("^<#spanstart#(#mytags#)",subex,1,false) eq 1)
+                    {
+                        if (findonly) { return subex; } // return invalid tag as an error message
+                        else { // remove the invalid tag from the string
+                            myString = RemoveChars(myString,x + currenttag.pos[1] -1,currenttag.len[1]);
+                            currenttag.len[1] = 0; // set the length of the tag string found to zero because it was removed
+                        }
+                    }
+                }
+                // no tag was found within rexlimit characters
+                // move to the next block of rexlimit characters -- CF 5 regex limitation
+                else { currenttag.pos[1] = rexlimit; }
+            }
+        }
+        if (findonly) { return ""; } // return an empty string indicating no invalid tags found
+        else { return mystring; } // return the new string discluding any invalid tags
+        </cfscript>
+    </cffunction>
+
+    <cffunction name="dumpInternals" output="true" access="public" returntype="void">
+
+        <cfdump var=#variables#>
+    </cffunction>
 
 </cfcomponent>
