@@ -7,13 +7,47 @@ communities. Kathune is smart enough to parse the forum posts it spiders, and in
 content is a guild looking for people (which it does not care about), or if it is a person looking for a new guild
 (which it *does* care about), and indexes only that content.
 
-Kathune runs in three concurrent phases, which are summarized as:
+Kathune runs perpetually in three concurrent phases, which are summarized as:
 
-1. Make HTTP requests out to sites and parse their data.
+1. Make HTTP requests out to sites, extract posts whose titles match the Kathune ranking algorithm, and dump those
+into a database.
 
-2. Process the parsed data, determining which content is relevant.
+2. Poll the data from Step 1, make return HTTP trips, and retrieve the post bodies, updating the database
+appropriately.
 
-3. Rank the relevant content, flagging it for availaibilty via a front-end search.
+3. Scan the database for new (unranked) data with post bodies, and rank it, which causes the content to be flagged
+for availaibilty via a front-end search.
+
+=====
+Notes
+=====
+
+You are absolutely allowed to criticize (and encouraged to do so!) but I would like to take a quick opportunity
+to provide a few caveats, which may (or may not) explain my decisions:
+
+1. Kathune was built in early 2008, prior to the release of WotLK, which predates the availability of the WoW
+Community API. As a result, there's some superfluous work being done in Kathune that could be offloaded to the
+API (ie. lookup of realm-names).
+
+2. I'm well-aware that Kathune.cfc is still heavily monolithic, and could be broken out further, esp. in regards
+to the functionality surrounding the Bot-style tweeting.
+
+3. The goal was to have the Tentacles be set up using the Decorator pattern, but I didn't grasp this concept
+until well after Kathune was built. I feel very strongly that Decorators would serve this design better (and
+are coincidentally used in my [WoWColdFusion API](https://github.com/Hanzo55/WoWColdFusionAPI)).
+
+4. The ridiculous naming convention of the methods (Digest, Glare, Thrash, Feed) as well as the individual
+spider objects (Tentacles) are my own playful way of paying tribute to [C'thun](http://www.wowhead.com/npc=15727),
+one of the Old Gods in World of Warcraft, which this spidering engine is named after (Kathune is the phonetic
+pronounciation of that boss's name). 
+
+  Because these arbitrary method names do not explain their behavior, I've provided additional
+  hints and comments to assist with the deciphering of this code. 
+
+  READ: I *DO NOT* CONDONE this style of naming! It is *completely* unmanagable and *IS NOT* a best practice!!
+
+  ...but I also never planned on making the source available, so take Kathune's naming conventions with a grain of
+  salt, and please: [Do as I say](http://cfbestpractices.blogspot.com/), not as I do.
 
 ==========
 Usefulness
