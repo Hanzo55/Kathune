@@ -18,10 +18,6 @@
             variables.activeTentacle = 0;
             variables.user_agent = 'Mozilla/5.0 (compatible; WoW Lemmings Kathune/2.0; http://www.wowlemmings.com/kathune.html)';
 
-            // maximum amount of posts to fetch from the db in an attempt to grab bodies, the higher the number, the more expensive / cpuhog like this spider becomes.
-            // this number should not go any higher than the CFADMIN thread max.
-            variables.httpFetchMaximum = 8;
-
             variables.timeout = 8;
             variables.tentacles = ArrayNew(1);
             variables.NewRecruitQueue = ArrayNew(1);
@@ -121,26 +117,6 @@
 
         <!--- empty out keywords --->
         <cfset StructClear( arguments.searchData.keywords ) />
-    </cffunction>
-
-    <cffunction name="PreyOnTheWeak" returntype="void" access="public" output="false"
-            hint="I am the main() function that executes all db maintenance, spidering logic, data refresh, and statistics updates. You. Will. Die.">
-
-        <cfscript>
-        // Kathune biz logic:
-
-        // 1. todo: perform db cleanup/maintenance (if necessary) -todo
-        //WashMouth();
-
-        // 2. parse all of the recruitment data for all sites (ExtendTentacles) and update by forum post titles/ids
-        ExtendTentacles();
-
-        // 3. review the bottom X amount of entries in the DB that have no postBodies, and fetch/update them, along with armoryURLs and any additional flags to further categorize the post
-        //Feed( variables.httpFetchMaximum );
-
-        // 4. perform a final pass on bottom X entries with a score of 1.0 and re-calculate the score, using armory if needed
-        //Digest( variables.httpFetchMaximum );
-        </cfscript>
     </cffunction>
 
     <cffunction name="Glare" returntype="void" access="public" output="false"
@@ -1355,11 +1331,12 @@
 
     <cffunction name="ExtendTentacles" returntype="void" access="public" output="false"
             hint="I am responsible for spawning threads for each registered spider URL, firing the spiders, and retrieving the data they collect. Your friends will abandon you.">
+        <cfargument name="maxThreads" type="numeric" required="true" />
 
         <cfset var i = 0 />
         <cfset var id = '' />
 
-        <cfloop from="1" to="#variables.httpFetchMaximum#" index="i">
+        <cfloop from="1" to="#arguments.maxThreads#" index="i">
 
             <cfset variables.activeTentacle = variables.activeTentacle + 1 />
 
