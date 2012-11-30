@@ -17,11 +17,15 @@ We'll use the Battle.net forums as an example.
 
 3. In the init() method, regular expressions used to extract the forum Link and Body are set. Appropriate back-reference allowances
 are specified with parenthesis (per regular expression syntax):
+
     a) A link requires two back-references: the hook id, and the link title.
+
     b) A body requires only one back-reference: the body of the post.
 
 4. The appropriate methods described in com.cf.Kathune.interface.ITentacle are then populated into:
+
     a) the body of the sub-class, and/or
+
     b) the body of one or more sub-classes of *that* class.
 
 5. The only method that MUST be written by hand for each sub-classed tentacle is TitleToPostStruct(). You can 
