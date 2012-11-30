@@ -3,15 +3,15 @@
     <cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.Blizzard.NorthAmerica.NorthAmericaTentacle" access="public" output="false">
         <cfargument name="settings" type="struct" required="true" />
 
-        <cfset setThreadURL('http://us.battle.net/wow/en/forum') />
+        <cfset setThreadURL( 'http://us.battle.net/wow/en/forum' ) />
 
-        <cfset setForumURL('http://us.battle.net/wow/en/forum/1011639/') />
+        <cfset setForumURL( 'http://us.battle.net/wow/en/forum/1011639/' ) />
 
-        <cfset setSource('Guild Recruitment -> Forums -> World of Warcraft') />
+        <cfset setSource( 'Guild Recruitment -> Forums -> World of Warcraft' ) />
 
-        <cfset setRegion('US') />
+        <cfset setRegion( 'US' ) />
 
-        <cfreturn super.init(arguments.settings) />
+        <cfreturn super.init( arguments.settings ) />
     </cffunction>
 
     <cffunction name="TitleToPostStruct" returntype="struct" output="false" access="public">
