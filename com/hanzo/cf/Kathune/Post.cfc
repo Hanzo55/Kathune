@@ -27,7 +27,7 @@
         <cfargument name="source" type="string" required="false" default="" />
 
         <cfscript>
-            variables.instanceData = structNew();
+            variables.instanceData = StructNew();
 
             variables.instanceData.postID = arguments.postID;
             variables.instanceData.postURL = arguments.postURL;
