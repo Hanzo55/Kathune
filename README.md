@@ -18,6 +18,25 @@ appropriately.
 3. Scan the database for new (unranked) data with post bodies, and rank it, which causes the content to be flagged
 for availaibilty via a front-end search.
 
+============
+Installation
+============
+
+1. Create the database with the schema provided (Kathune_MSSQL.sql)
+2. Set up the following Scheduled Tasks:
+
+  a) Kathune-Fetch: http://localhost/process.cfm (every 12 min.)
+  b) Kathune-Score: http://localhost/process.cfm?scoreOnly=true (every 6 min.)
+  c) Kathune-Update: http://localhost/process.cfm?bodiesOnly-true (every 10 min.)
+  
+  Additionally, if you want to add Twitter Bot support, two more tasks are required:
+  
+  d) Kathune-Twit: http://localhost/process.cfm?twitOnly=true (every 1 hr.)
+  e) Kathune-TwitSearch: http://localhost/process.cfm?twitSearchOnly=true (every 1 hr.)
+  
+3. Add in your Twitter oAuth info within Kathune.cfc
+4. Specify one or more Web Sites to farm recruitment info off, in the config.xml (TODO)
+
 =====
 Notes
 =====
