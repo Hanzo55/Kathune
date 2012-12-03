@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <datasource>Kathune</datasource>
+    <tentacles>
+        <tentacle SiteUUID="96ea7dc0-8ca7-11dd-ad8b-0800200c9a66">Blizzard.NorthAmerica.NorthAmericaTentacle</tentacle>
+        <tentacle SiteUUID="96ea7dc2-8ca7-11dd-ad8b-0800200c9a66">Blizzard.Europe.EuropeTentacle</tentacle>
+    </tentacles>
+</config>
