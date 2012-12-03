@@ -14,7 +14,7 @@
 
         <cfif ( NOT this.isDev AND NOT IsDefined( 'application.kathune' ) ) OR ( IsDefined( 'url.reinit' ) )>
             <cflock name="AppInit" timeout="30" type="exclusive">
-                <cfset application.kathune = CreateObject( 'component','com.hanzo.cf.Kathune.Kathune' ).init( '/config.xml' ) />
+                <cfset application.kathune = CreateObject( 'component','hanzo.cf.Kathune.Kathune' ).init( '/config.xml' ) />
             </cflock>
             <cfif IsDefined( 'url.reinit' )>
                 <cfobjectcache action="clear" />
@@ -35,7 +35,7 @@
         <cfset request.isDev = this.isDev />
 
         <cfif this.isDev>
-            <cfset request.kathune = CreateObject( 'component','com.hanzo.cf.Kathune.Kathune' ).init( '/config.xml' ) />
+            <cfset request.kathune = CreateObject( 'component','hanzo.cf.Kathune.Kathune' ).init( '/config.xml' ) />
             <cfobjectcache action="clear" />
         <cfelse>
             <cflock name="AppRead" timeout="15" type="readonly">

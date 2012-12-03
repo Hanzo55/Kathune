@@ -1,6 +1,6 @@
 <cfcomponent displayname="Kathune" output="false">
 
-    <cffunction name="init" returntype="com.hanzo.cf.Kathune.Kathune" access="public" output="false">
+    <cffunction name="init" returntype="hanzo.cf.Kathune.Kathune" access="public" output="false">
         <cfargument name="xmlPath" type="string" required="true" />
 
         <cfscript>
@@ -22,7 +22,7 @@
             variables.tentacles = ArrayNew(1);
             variables.NewRecruitQueue = ArrayNew(1);
             variables.RecruiterSearch = StructNew();
-            variables.analysis = CreateObject( 'component', 'com.hanzo.cf.Kathune.AnalysisService' );
+            variables.analysis = CreateObject( 'component', 'hanzo.cf.Kathune.AnalysisService' );
 
             variables.oAuthToken = '';
             variables.oAuthSecret = '';
@@ -31,7 +31,7 @@
             variables.screen_name = '';
             variables.user_id = '';
 
-            variables.twitter = CreateObject( 'component', 'com.coldfumonkeh.monkehTweet' )
+            variables.twitter = CreateObject( 'component', 'coldfumonkeh.monkehTweet' )
                 .init(
                     consumerKey = 'YOURTWITTERCONSUMERKEY',
                     consumerSecret = 'YOURTWITTERCONSUMERSECRET',
@@ -67,13 +67,13 @@
 
                 settings.SiteUUID = tentacleArray[i].XmlAttributes.SiteUUID;
 
-                tent = CreateObject( 'component', 'com.hanzo.cf.Kathune.tentacle.#tentacleArray[i].XmlText#' )
+                tent = CreateObject( 'component', 'hanzo.cf.Kathune.tentacle.#tentacleArray[i].XmlText#' )
                     .init( settings );
 
                 ArrayAppend( variables.tentacles, tent );
             </cfscript>
 
-            <cflog file="Kathune" type="information" text="init() - Loaded com.hanzo.cf.Kathune.tentacle.#tentacleArray[i].XmlText# into memory (SiteUUID: #settings.SiteUUID#)" />
+            <cflog file="Kathune" type="information" text="init() - Loaded hanzo.cf.Kathune.tentacle.#tentacleArray[i].XmlText# into memory (SiteUUID: #settings.SiteUUID#)" />
         </cfloop>
 
         <cflog file="Kathune" type="information" text="init() - Successfully loaded #ArrayLen( variables.tentacles )# tentacles into memory" />
@@ -1466,7 +1466,7 @@
         </cfloop>
     </cffunction>
 
-    <cffunction name="getTentacleBySiteUUID" returntype="com.hanzo.cf.Kathune.KathuneTentacle" access="private" output="false">
+    <cffunction name="getTentacleBySiteUUID" returntype="hanzo.cf.Kathune.KathuneTentacle" access="private" output="false">
         <cfargument name="siteUUID" type="any" required="true" />
 
         <cfset var i = 0 />

@@ -28,7 +28,7 @@
         variables.hordeFlag = 'orc|undead|troll|tauren|belf|blood elf|bloodelf|horde';
     </cfscript>
 
-    <cffunction name="init" returntype="com.hanzo.cf.Kathune.KathuneTentacle" access="private" output="false">
+    <cffunction name="init" returntype="hanzo.cf.Kathune.KathuneTentacle" access="private" output="false">
         <cfargument name="settings" type="struct" required="true" />
 
         <cfscript>
@@ -245,7 +245,7 @@
         <cfreturn oArray />
     </cffunction>
 
-    <cffunction name="CreatePostObjectFromQueryRow" returntype="com.hanzo.cf.Kathune.Post" access="public" output="false">
+    <cffunction name="CreatePostObjectFromQueryRow" returntype="hanzo.cf.Kathune.Post" access="public" output="false">
         <cfargument name="dataQuery" type="query" required="true" />
         <cfargument name="row" type="numeric" required="true" />
 
@@ -256,7 +256,7 @@
         1. do generic scoring first
         2. touch up any tentacle-specific scoring in the derived class via polymorphism --->
 
-        <cfset postObject = CreateObject( 'component', 'com.hanzo.cf.Kathune.Post' ) />
+        <cfset postObject = CreateObject( 'component', 'hanzo.cf.Kathune.Post' ) />
         <cfset scoredStruct = TitleToPostStruct( arguments.dataQuery.title[arguments.row] ) />
 
         <cfset postObject.init( argumentCollection=scoredStruct ) />

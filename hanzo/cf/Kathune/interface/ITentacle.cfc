@@ -21,7 +21,7 @@
     <cffunction name="getPostsAsObjectArray" returntype="array" access="public" output="false">
     </cffunction>
 
-    <cffunction name="CreatePostObjectFromQueryRow" returntype="com.hanzo.cf.Kathune.Post" access="public" output="false">
+    <cffunction name="CreatePostObjectFromQueryRow" returntype="hanzo.cf.Kathune.Post" access="public" output="false">
         <cfargument name="dataQuery" type="query" required="true" />
         <cfargument name="row" type="numeric" required="true" />
     </cffunction>
