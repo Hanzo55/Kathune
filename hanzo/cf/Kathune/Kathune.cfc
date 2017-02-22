@@ -528,9 +528,6 @@
 					
 					<cfset tentacle = getTentacleBySiteUUID( tSiteUUID ) />
 
-					<!--- TODO: make this return a STRUCT with the post title *and* the post body, so that the title
-					can be 2nd checked against forums that love to fucking randomly change the ids of the posts AFTER they
-					are fuckin' posted -- WHO DOES THIS?!!?!! --->
 					<cfset postStruct = tentacle.fetchPostByHook( tHook ) />
 
 					<!--- sigh, run your SECOND title check --->
@@ -978,6 +975,73 @@
 			
 			</cfloop>
 			
+		</cfif>
+	</cffunction>	
+
+	<cffunction name="Torment" returntype="void" access="public" output="false"
+				hint="I am responsible for scanning the most recent posts that have progressed through all stages, are now scored, but whose URLs no potentially no longer reflect the original post. Posts that are scored/available to the public that no longer match titles in our cache are downgraded to be re-scored (and potentially perma-deleted). You are weak.">
+		<cfargument name="maxThreads" type="numeric" required="true" />
+		<cfargument name="maxRows" type="numeric" required="true" default="50" />
+		
+		<cfset var id = '' />
+
+		<!--- Process the bottom X most recent fully scored posts (bottom of the homepage) --->
+
+		<cfquery name="qLinks__FetchRecentScored" datasource="#variables.dsn#" blockfactor="#arguments.maxThreads#">
+			SELECT l.*, s.SiteUUID, s.Hook
+			FROM Links l
+				INNER JOIN Sites s ON (l.PostID = s.PostID)
+			WHERE (l.PostBody <> '' AND l.PostBody IS NOT NULL)
+			AND (l.Score > 1)
+			ORDER BY l.EffectiveDate DESC
+			LIMIT #arguments.maxThreads#
+			OFFSET #Evaluate(arguments.maxRows-arguments.maxThreads)#
+		</cfquery>
+
+		<cfif qLinks__FetchRecentScored.recordcount>
+
+			<cfloop query="qLinks__FetchRecentScored">
+				
+				<cfset id = getTimestamp() />
+
+				<cfthread name="__Torment_thread_#qLinks__FetchRecentScored.currentRow#_#id#"
+						  row="#qLinks__FetchRecentScored.currentRow#"
+						  tSiteUUID="#qLinks__FetchRecentScored.SiteUUID[qLinks__FetchRecentScored.currentRow]#"
+						  tHook="#qLinks__FetchRecentScored.Hook[qLinks__FetchRecentScored.currentRow]#"
+						  tPostID="#qLinks__FetchRecentScored.PostID[qLinks__FetchRecentScored.currentRow]#"
+						  tArmoryURL="#qLinks__FetchRecentScored.ArmoryURL[qLinks__FetchRecentScored.currentRow]#"
+						  tPostTitle="#qLinks__FetchRecentScored.PostTitle[qLinks__FetchRecentScored.currentRow]#"
+						  tID="#id#"
+						  action="run">
+
+					<cfset var tentacle = 0 />
+					<cfset var postStruct = structNew() />
+					
+					<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Feeding off of SiteUUID: #tSiteUUID#, Hook: #tHook#, PostID: #tPostID#, Post Title: #tPostTitle#">
+					
+					<cfset tentacle = getTentacleBySiteUUID( tSiteUUID ) />
+
+					<cfset postStruct = tentacle.fetchPostByHook( tHook ) />
+
+					<!--- if the titles don't match, downgrade this back to pre-scored, to be reprocessed --->
+					<cfif Compare(tPostTitle, postStruct.title)>
+
+						<cfquery name="qDowngradeLink__Feed_thread#tID#" datasource="#variables.dsn#">
+							UPDATE Links
+								SET PostBody = '',
+									ArmoryURL = '',
+									Score = 1
+							WHERE PostID = #tPostID#
+						</cfquery>
+
+						<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Torment() for Hook [#tHook#] expected title [#tPostTitle#], instead got [#postStruct.title#]. Hooks have changed, PostID:#tPostID# re-queued for reprocessing" />
+
+					</cfif>
+
+				</cfthread>					
+
+			</cfloop>
+
 		</cfif>
 	</cffunction>	
 	
