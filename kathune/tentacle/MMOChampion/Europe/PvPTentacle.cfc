@@ -1,10 +1,10 @@
-<cfcomponent displayname="Horde" output="false" extends="Tentacle.Blizzard.NorthAmerica.NorthAmericaTentacle" implements="interface.ITentacle">
+<cfcomponent displayname="PvPTentacle" output="false" extends="kathune.tentacle.MMOChampion.Europe.EuropeTentacle">
 
-	<cffunction name="init" returntype="Tentacle.Blizzard.NorthAmerica.HordeTentacle" access="public" output="false">
+	<cffunction name="init" returntype="kathune.tentacle.MMOChampion.Europe.PvPTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
-		<cfset setForumURL('http://forums.worldofwarcraft.com/board.html?forumId=7244844&sid=1&pageNo=1') />
-		<cfset setSource('World of Warcraft (English Forums) -> Guild Recruitment -> Horde') />
+		<cfset setForumURL('http://www.mmo-champion.com/forums/260-Guild-Recruitment-EU-English-PvP-Servers') />
+		<cfset setSource('MMO-Champion.com -> Guild Recruitment -> EU-English PvP Servers') />
 		
 		<cfreturn super.init(arguments.settings) />
 	</cffunction>
@@ -15,7 +15,7 @@
 
 		<cfset var postObject = super.CreatePostObjectFromQueryRow( arguments.dataQuery, arguments.row ) />
 
-		<cfset postObject.setIsAlliance( false ) />
+		<cfset postObject.setIsPvP( true ) />
 		
 		<cfreturn postObject />
 	</cffunction>

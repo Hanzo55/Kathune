@@ -1,4 +1,4 @@
-<cfcomponent displayname="Tentacle" output="false">
+<cfcomponent displayname="KathuneTentacle" output="false">
 
 	<cfscript>
 	variables.timeout 		= 8;

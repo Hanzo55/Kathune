@@ -1,10 +1,10 @@
-<cfcomponent displayname="Alliance" output="false" extends="tentacle.Blizzard.Europe.EuropeTentacle" implements="interface.ITentacle">
+<cfcomponent displayname="Alliance" output="false" extends="kathune.tentacle.Blizzard.NorthAmerica.NorthAmericaTentacle" implements="interface.ITentacle">
 
-	<cffunction name="init" returntype="tentacle.Blizzard.Europe.AllianceTentacle" access="public" output="false">
+	<cffunction name="init" returntype="kathune.tentacle.Blizzard.NorthAmerica.AllianceTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
-		<cfset setForumURL('http://forums.wow-europe.com/board.html?forumId=11096') />
-		<cfset setSource('World of Warcraft (Europe Forums) -> Guild Recruitment -> Alliance') />
+		<cfset setForumURL('http://forums.worldofwarcraft.com/board.html?forumId=7244843&sid=1&pageNo=1') />
+		<cfset setSource('World of Warcraft (English Forums) -> Guild Recruitment -> Alliance') />
 		
 		<cfreturn super.init(arguments.settings) />
 	</cffunction>

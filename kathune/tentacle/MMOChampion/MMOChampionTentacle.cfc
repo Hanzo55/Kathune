@@ -1,6 +1,6 @@
-<cfcomponent displayname="MMOChampionTentacle" output="false" extends="KathuneTentacle">
+<cfcomponent displayname="MMOChampionTentacle" output="false" extends="kathune.KathuneTentacle">
 
-	<cffunction name="init" returntype="tentacle.MMOChampion.MMOChampionTentacle" access="private" output="false">
+	<cffunction name="init" returntype="kathune.tentacle.MMOChampion.MMOChampionTentacle" access="private" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<!--- 

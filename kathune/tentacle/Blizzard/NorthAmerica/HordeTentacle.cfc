@@ -1,10 +1,10 @@
-<cfcomponent displayname="Alliance" output="false" extends="tentacle.Blizzard.NorthAmerica.NorthAmericaTentacle" implements="interface.ITentacle">
+<cfcomponent displayname="Horde" output="false" extends="kathune.tentacle.Blizzard.NorthAmerica.NorthAmericaTentacle" implements="interface.ITentacle">
 
-	<cffunction name="init" returntype="tentacle.Blizzard.NorthAmerica.AllianceTentacle" access="public" output="false">
+	<cffunction name="init" returntype="kathune.tentacle.Blizzard.NorthAmerica.HordeTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
-		<cfset setForumURL('http://forums.worldofwarcraft.com/board.html?forumId=7244843&sid=1&pageNo=1') />
-		<cfset setSource('World of Warcraft (English Forums) -> Guild Recruitment -> Alliance') />
+		<cfset setForumURL('http://forums.worldofwarcraft.com/board.html?forumId=7244844&sid=1&pageNo=1') />
+		<cfset setSource('World of Warcraft (English Forums) -> Guild Recruitment -> Horde') />
 		
 		<cfreturn super.init(arguments.settings) />
 	</cffunction>
@@ -15,7 +15,7 @@
 
 		<cfset var postObject = super.CreatePostObjectFromQueryRow( arguments.dataQuery, arguments.row ) />
 
-		<cfset postObject.setIsAlliance( true ) />
+		<cfset postObject.setIsAlliance( false ) />
 		
 		<cfreturn postObject />
 	</cffunction>

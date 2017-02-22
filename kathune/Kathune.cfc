@@ -31,7 +31,7 @@
 			variables.screen_name 		= '';
 			variables.user_id 			= '';
 			
-			variables.twitter			= CreateObject('component', 'com.coldfumonkeh.monkehTweet')
+			variables.twitter			= CreateObject('component', 'coldfumonkeh.monkehTweet')
 				.init(
 					consumerKey			=	'CONSUMERKEY',
 					consumerSecret		=	'CONSUMERSECRET',

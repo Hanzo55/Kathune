@@ -1,10 +1,10 @@
-<cfcomponent displayname="PvPTentacle" output="false" extends="tentacle.MMOChampion.NorthAmerica.NorthAmericaTentacle" implements="interface.ITentacle">
+<cfcomponent displayname="PvETentacle" output="false" extends="kathune.tentacle.MMOChampion.NorthAmerica.NorthAmericaTentacle">
 
-	<cffunction name="init" returntype="tentacle.MMOChampion.NorthAmerica.PvPTentacle" access="public" output="false">
+	<cffunction name="init" returntype="kathune.tentacle.MMOChampion.NorthAmerica.PvETentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
-		<cfset setForumURL('http://www.mmo-champion.com/forums/258-Guild-Recruitment-US-PvP-Servers') />
-		<cfset setSource('MMO-Champion.com -> Guild Recruitment -> US PvP Servers') />
+		<cfset setForumURL('http://www.mmo-champion.com/forums/259-Guild-Recruitment-US-PvE-Servers') />
+		<cfset setSource('MMO-Champion.com -> Guild Recruitment -> US PvE Servers') />
 		
 		<cfreturn super.init( arguments.settings ) />
 	</cffunction>
@@ -15,7 +15,7 @@
 
 		<cfset var postObject = super.CreatePostObjectFromQueryRow( arguments.dataQuery, arguments.row ) />
 
-		<cfset postObject.setIsPvP( true ) />
+		<cfset postObject.setIsPvE( true ) />
 		
 		<cfreturn postObject />
 	</cffunction>
