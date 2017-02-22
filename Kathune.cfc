@@ -1,6 +1,6 @@
 <cfcomponent displayname="Kathune" output="false">
 	
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.Kathune" access="public" output="false">
+	<cffunction name="init" returntype="Kathune" access="public" output="false">
 		<cfargument name="xmlPath" type="string" required="true" />
 
 		<cfscript>
@@ -22,8 +22,8 @@
 			variables.tentacles			= arrayNew(1);
 			variables.NewRecruitQueue	= arrayNew(1);
 			variables.RecruiterSearch	= StructNew();			
-			variables.analysis			= CreateObject('component', 'com.hanzo.cf.Kathune.AnalysisService');
-			//variables.twitter			= CreateObject('component', 'com.hanzo.cf.Kathune.Twitter').init('USERNAME','PASSWORD');
+			variables.analysis			= CreateObject('component', 'AnalysisService');
+			//variables.twitter			= CreateObject('component', 'Twitter').init('USERNAME','PASSWORD');
 			variables.oAuthToken		= '';
 			variables.oAuthSecret		= '';
 			variables.accessToken 		= '';
@@ -79,12 +79,12 @@
 				
 				settings.SiteUUID = tentacleArray[i].XmlAttributes.SiteUUID;
 				
-				tent = CreateObject( 'component','com.hanzo.cf.Kathune.tentacle.#tentacleArray[i].XmlText#' ).init( settings );
+				tent = CreateObject( 'component','tentacle.#tentacleArray[i].XmlText#' ).init( settings );
 				
 				arrayAppend( variables.tentacles, tent );
 			</cfscript>
 			
-			<cflog file="Kathune" type="information" text="init() - Loaded com.hanzo.cf.Kathune.tentacle.#tentacleArray[i].XmlText# into memory (SiteUUID: #settings.SiteUUID#)">
+			<cflog file="Kathune" type="information" text="init() - Loaded tentacle.#tentacleArray[i].XmlText# into memory (SiteUUID: #settings.SiteUUID#)">
 		</cfloop>
 		
 		<cflog file="Kathune" type="information" text="init() - Successfully loaded #ArrayLen(variables.tentacles)# tentacles into memory">
@@ -1569,7 +1569,7 @@
 		</cfloop>
 	</cffunction>
 	
-	<cffunction name="getTentacleBySiteUUID" returntype="com.hanzo.cf.Kathune.KathuneTentacle" access="private" output="false">
+	<cffunction name="getTentacleBySiteUUID" returntype="KathuneTentacle" access="private" output="false">
 		<cfargument name="siteUUID" type="any" required="true" />
 		
 		<cfset var i = 0 />
@@ -1652,7 +1652,7 @@
 		<cfreturn qPost__Fetch />
 	</cffunction>
 
-	<cffunction name="GetPostByURL" returntype="com.hanzo.cf.Kathune.Post" access="private" output="false">
+	<cffunction name="GetPostByURL" returntype="Post" access="private" output="false">
 		<cfargument name="tentacle" type="struct" reqiured="true" />
 		<cfargument name="urlString" type="string" required="true" />
 		
@@ -1669,7 +1669,7 @@
 		<cfif qPostByURL__Fetch.RecordCount EQ 1>
 			<cfset nPost = arguments.tentacle.CreatePostObjectFromQueryRow( qPostByURL__Fetch, 1 ) />
 		<cfelse>
-			<cfset nPost = CreateObject('component','com.hanzo.cf.Kathune.Post').init( ) />
+			<cfset nPost = CreateObject('component','Post').init( ) />
 		</cfif>
 
 		<cfreturn nPost />

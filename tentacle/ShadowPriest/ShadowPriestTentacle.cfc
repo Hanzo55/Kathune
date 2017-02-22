@@ -1,6 +1,6 @@
-<cfcomponent displayname="ShadowPriest" output="false" extends="com.hanzo.cf.Kathune.KathuneTentacle" implements="com.hanzo.cf.Kathune.interface.ITentacle">
+<cfcomponent displayname="ShadowPriest" output="false" extends="KathuneTentacle" implements="interface.ITentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.ShadowPriest.ShadowPriestTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.ShadowPriest.ShadowPriestTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<cfset setForumURL('http://www.shadowpriest.com/viewforum.php?f=45') />

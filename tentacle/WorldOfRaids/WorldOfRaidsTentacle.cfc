@@ -1,6 +1,6 @@
-<cfcomponent displayname="WorldOfRaidsTentacle" output="false" extends="com.hanzo.cf.Kathune.KathuneTentacle">
+<cfcomponent displayname="WorldOfRaidsTentacle" output="false" extends="KathuneTentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.WorldOfRaids.WorldOfRaidsTentacle" access="private" output="false">
+	<cffunction name="init" returntype="tentacle.WorldOfRaids.WorldOfRaidsTentacle" access="private" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<!--- this is an abstract base class which contains shared parsing rules for blizzard-forums in general. should not be instanced. --->

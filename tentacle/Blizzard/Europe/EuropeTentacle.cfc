@@ -1,6 +1,6 @@
-<cfcomponent displayname="Europe" output="false" extends="com.hanzo.cf.Kathune.tentacle.Blizzard.BlizzardTentacle" implements="com.hanzo.cf.Kathune.interface.ITentacle">
+<cfcomponent displayname="Europe" output="false" extends="tentacle.Blizzard.BlizzardTentacle" implements="interface.ITentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.Blizzard.Europe.EuropeTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.Blizzard.Europe.EuropeTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 
 		<cfset setThreadURL('https://eu.battle.net/forums/en/wow') />

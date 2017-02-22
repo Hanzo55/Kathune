@@ -1,6 +1,6 @@
-<cfcomponent displayname="MMOChampionTentacle" output="false" extends="com.hanzo.cf.Kathune.KathuneTentacle">
+<cfcomponent displayname="MMOChampionTentacle" output="false" extends="KathuneTentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.MMOChampion.MMOChampionTentacle" access="private" output="false">
+	<cffunction name="init" returntype="tentacle.MMOChampion.MMOChampionTentacle" access="private" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<!--- 

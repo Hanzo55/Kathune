@@ -1,4 +1,4 @@
-<cfcomponent displayname="EventGateway" hint="com.hanzo.cf.Kathune.EventGateway">
+<cfcomponent displayname="EventGateway" hint="EventGateway">
 
 	<cffunction name="onIncomingMessage">
 		<cfargument name="cfevent" type="struct" required="true" />

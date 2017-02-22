@@ -1,6 +1,6 @@
 <cfcomponent displayname="Post" output="false">
 	
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.Post" access="public" output="false">
+	<cffunction name="init" returntype="Post" access="public" output="false">
 		<cfargument name="postID" type="numeric" required="false" default="-1" />
 		<cfargument name="postURL" type="string" required="false" default="" />		
 		<cfargument name="postTitle" type="string" required="false" default="" />

@@ -1,12 +1,12 @@
-<cfcomponent displayname="Alliance" output="false" extends="com.hanzo.cf.Kathune.tentacle.LookingForGuild.Europe.EuropeTentacle" implements="com.hanzo.cf.Kathune.interface.ITentacle">
+<cfcomponent displayname="Alliance" output="false" extends="tentacle.LookingForGuild.Europe.EuropeTentacle" implements="interface.ITentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.LookingForGuild.Europe.Horde.HordeTentacle" access="private" output="false">
+	<cffunction name="init" returntype="tentacle.LookingForGuild.Europe.Horde.HordeTentacle" access="private" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<cfreturn super.init(arguments.settings) />
 	</cffunction>
 	
-	<cffunction name="CreatePostObjectFromQueryRow" returntype="com.hanzo.cf.Kathune.Post" access="public" output="false">
+	<cffunction name="CreatePostObjectFromQueryRow" returntype="Post" access="public" output="false">
 		<cfargument name="dataQuery" type="query" required="true" >
 		<cfargument name="row" type="numeric" required="true" />
 

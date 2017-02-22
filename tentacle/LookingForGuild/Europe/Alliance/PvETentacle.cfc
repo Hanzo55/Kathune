@@ -1,6 +1,6 @@
-<cfcomponent displayname="PvETentacle" output="false" extends="com.hanzo.cf.Kathune.tentacle.LookingForGuild.Europe.Alliance.AllianceTentacle" implements="com.hanzo.cf.Kathune.interface.ITentacle">
+<cfcomponent displayname="PvETentacle" output="false" extends="tentacle.LookingForGuild.Europe.Alliance.AllianceTentacle" implements="interface.ITentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.LookingForGuild.Europe.Alliance.PvETentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.LookingForGuild.Europe.Alliance.PvETentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<cfset setForumURL('http://www.lookingforguild.net/viewsublist.asp?cid=10003&sid=50005&3id=100024') />
@@ -9,7 +9,7 @@
 		<cfreturn super.init( arguments.settings ) />
 	</cffunction>
 	
-	<cffunction name="CreatePostObjectFromQueryRow" returntype="com.hanzo.cf.Kathune.Post" access="public" output="false">
+	<cffunction name="CreatePostObjectFromQueryRow" returntype="Post" access="public" output="false">
 		<cfargument name="dataQuery" type="query" required="true" >
 		<cfargument name="row" type="numeric" required="true" />
 

@@ -1,6 +1,6 @@
-<cfcomponent displayname="BigRedKittyTentacle" output="false" extends="com.hanzo.cf.Kathune.KathuneTentacle">
+<cfcomponent displayname="BigRedKittyTentacle" output="false" extends="KathuneTentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.BigRedKitty.BigRedKittyTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.BigRedKitty.BigRedKittyTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<!--- BigRedKitty is the same as MMOChampion, rule-wise --->

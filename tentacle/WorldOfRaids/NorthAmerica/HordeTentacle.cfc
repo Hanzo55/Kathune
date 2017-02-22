@@ -1,6 +1,6 @@
-<cfcomponent displayname="Horde" output="false" extends="com.hanzo.cf.Kathune.tentacle.WorldOfRaids.NorthAmerica.NorthAmericaTentacle" implements="com.hanzo.cf.Kathune.interface.ITentacle">
+<cfcomponent displayname="Horde" output="false" extends="tentacle.WorldOfRaids.NorthAmerica.NorthAmericaTentacle" implements="interface.ITentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.Tentacle.WorldOfRaids.NorthAmerica.HordeTentacle" access="public" output="false">
+	<cffunction name="init" returntype="Tentacle.WorldOfRaids.NorthAmerica.HordeTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<cfset setForumURL('http://www.worldofraids.com/forums/forumdisplay.php?f=29') />
@@ -9,7 +9,7 @@
 		<cfreturn super.init(arguments.settings) />
 	</cffunction>
 	
-	<cffunction name="CreatePostObjectFromQueryRow" returntype="com.hanzo.cf.Kathune.Post" access="public" output="false">
+	<cffunction name="CreatePostObjectFromQueryRow" returntype="Post" access="public" output="false">
 		<cfargument name="dataQuery" type="query" required="true" >
 		<cfargument name="row" type="numeric" required="true" />
 

@@ -1,6 +1,6 @@
-<cfcomponent displayname="TankSpot" output="false" extends="com.hanzo.cf.Kathune.KathuneTentacle" implements="com.hanzo.cf.Kathune.interface.ITentacle">
+<cfcomponent displayname="TankSpot" output="false" extends="KathuneTentacle" implements="interface.ITentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.TankSpot.TankSpotTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.TankSpot.TankSpotTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<!--- example

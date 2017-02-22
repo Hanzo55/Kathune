@@ -1,6 +1,6 @@
-<cfcomponent displayname="LightNatured" output="false" extends="com.hanzo.cf.Kathune.KathuneTentacle" implements="com.hanzo.cf.Kathune.interface.ITentacle">
+<cfcomponent displayname="LightNatured" output="false" extends="KathuneTentacle" implements="interface.ITentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.LightNatured.LightNaturedTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.LightNatured.LightNaturedTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<cfset setForumURL('http://www.lightnatured.com/forum/viewforum.php?f=23') />

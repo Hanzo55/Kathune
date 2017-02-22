@@ -1,6 +1,6 @@
-<cfcomponent displayname="DeathKnightTentacle" output="false" extends="com.hanzo.cf.Kathune.KathuneTentacle">
+<cfcomponent displayname="DeathKnightTentacle" output="false" extends="KathuneTentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.DeathKnight.DeathKnightTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.DeathKnight.DeathKnightTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<!--- DeathKnight.info is the same as MMOChampion, rule-wise --->

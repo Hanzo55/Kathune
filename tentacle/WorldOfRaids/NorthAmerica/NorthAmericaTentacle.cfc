@@ -1,6 +1,6 @@
-<cfcomponent displayname="NorthAmerica" output="false" extends="com.hanzo.cf.Kathune.tentacle.WorldOfRaids.WorldOfRaidsTentacle">
+<cfcomponent displayname="NorthAmerica" output="false" extends="tentacle.WorldOfRaids.WorldOfRaidsTentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.WorldOfRaids.NorthAmerica.NorthAmericaTentacle" access="private" output="false">
+	<cffunction name="init" returntype="tentacle.WorldOfRaids.NorthAmerica.NorthAmericaTentacle" access="private" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 
 		<cfset setRegion('US') />

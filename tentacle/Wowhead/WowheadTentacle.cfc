@@ -1,6 +1,6 @@
-<cfcomponent displayname="Wowhead" output="false" extends="com.hanzo.cf.Kathune.KathuneTentacle">
+<cfcomponent displayname="Wowhead" output="false" extends="KathuneTentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.Wowhead.WowheadTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.Wowhead.WowheadTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<!--- http://www.wowhead.com/?forums&topic=44880&p=460860 --->

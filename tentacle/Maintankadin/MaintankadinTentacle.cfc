@@ -1,6 +1,6 @@
-<cfcomponent displayname="MaintankadinTentacle" output="false" extends="com.hanzo.cf.Kathune.KathuneTentacle">
+<cfcomponent displayname="MaintankadinTentacle" output="false" extends="KathuneTentacle">
 
-	<cffunction name="init" returntype="com.hanzo.cf.Kathune.tentacle.Maintankadin.MaintankadinTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.Maintankadin.MaintankadinTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<cfset setForumURL('http://maintankadin.failsafedesign.com/viewforum.php?f=8') />
