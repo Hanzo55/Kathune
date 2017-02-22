@@ -23,7 +23,22 @@ Installation
 ============
 
 1. Create the database with the schema provided (Kathune_MSSQL.sql)
-2. Set up the following Scheduled Tasks:
+
+2. Add a component mapping in your respective CF/Railo/Lucee app server
+
+- for Lucee:
+
+  2a. Access the Server admin (not Web)
+
+  2b. Navigate to "Archives & Resources -> Component"
+
+  2c. Under "Additional Resources", add:
+
+  - Name: 'kathune'
+  - Resource: physical path to the root directory you checked out of github.
+  - Archive: (leave blank)
+
+3. Set up the following Scheduled Tasks:
 
   a) Kathune-Fetch: http://localhost/process.cfm (every 12 min.)
   
@@ -37,8 +52,8 @@ Installation
   
   e) Kathune-TwitSearch: http://localhost/process.cfm?twitSearchOnly=true (every 1 hr.)
   
-3. Add in your Twitter oAuth info within Kathune.cfc
-4. Specify one or more Web Sites to farm recruitment info off, in the config.xml (TODO)
+4. Add in your Twitter oAuth info within Kathune.cfc
+5. Specify one or more Web Sites to farm recruitment info off, in the config.xml (TODO)
 
 =====
 Notes
