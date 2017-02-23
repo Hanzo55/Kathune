@@ -1,3 +1,6 @@
 [submodule "monkehTweets"]
 	path = monkehTweets
 	url = https://github.com/Hanzo55/monkehTweets
+[submodule "kathune/monkehTweets"]
+	path = kathune/monkehTweets
+	url = https://github.com/Hanzo55/monkehTweets
