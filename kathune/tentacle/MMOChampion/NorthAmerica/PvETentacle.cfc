@@ -1,6 +1,6 @@
-<cfcomponent displayname="PvETentacle" output="false" extends="kathune.tentacle.MMOChampion.NorthAmerica.NorthAmericaTentacle">
+<cfcomponent displayname="PvETentacle" output="false" extends="tentacle.MMOChampion.NorthAmerica.NorthAmericaTentacle">
 
-	<cffunction name="init" returntype="kathune.tentacle.MMOChampion.NorthAmerica.PvETentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.MMOChampion.NorthAmerica.PvETentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<cfset setForumURL('http://www.mmo-champion.com/forums/259-Guild-Recruitment-US-PvE-Servers') />

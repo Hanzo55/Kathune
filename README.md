@@ -35,7 +35,7 @@ Installation
   2c. Under "Additional Resources", add:
 
   - Name: 'kathune'
-  - Resource: physical path to the root directory you checked out of github.
+  - Resource: physical path to the 'kathune' directory in the root github folder ( eg: C:\workspace\Kathune\kathune\ )
   - Archive: (leave blank)
 
 3. Set up the following Scheduled Tasks:

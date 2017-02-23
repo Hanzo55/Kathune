@@ -6,6 +6,9 @@
     <!--- How long application vars persist --->
     <cfset this.applicationTimeout = CreateTimeSpan( 0, 8, 0, 0 ) />
 
+    <!--- mapping to the core lib --->
+    <cfset this.componentpaths = [ ExpandPath(GetDirectoryFromPath(GetCurrentTemplatePath()) & "/../kathune/") ] />
+
     <!--- Dev or Prod? --->
     <cfset this.isDev = false />
 

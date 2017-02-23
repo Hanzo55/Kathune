@@ -1,6 +1,6 @@
-<cfcomponent displayname="PvPTentacle" output="false" extends="kathune.tentacle.MMOChampion.Europe.EuropeTentacle">
+<cfcomponent displayname="PvPTentacle" output="false" extends="tentacle.MMOChampion.Europe.EuropeTentacle">
 
-	<cffunction name="init" returntype="kathune.tentacle.MMOChampion.Europe.PvPTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.MMOChampion.Europe.PvPTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<cfset setForumURL('http://www.mmo-champion.com/forums/260-Guild-Recruitment-EU-English-PvP-Servers') />

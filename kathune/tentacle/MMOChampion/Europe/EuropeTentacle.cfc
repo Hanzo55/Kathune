@@ -1,6 +1,6 @@
-<cfcomponent displayname="Europe" output="false" extends="kathune.tentacle.MMOChampion.MMOChampionTentacle">
+<cfcomponent displayname="Europe" output="false" extends="tentacle.MMOChampion.MMOChampionTentacle">
 
-	<cffunction name="init" returntype="kathune.tentacle.MMOChampion.Europe.EuropeTentacle" access="private" output="false">
+	<cffunction name="init" returntype="tentacle.MMOChampion.Europe.EuropeTentacle" access="private" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<cfset setRegion( 'EU-EN' ) />

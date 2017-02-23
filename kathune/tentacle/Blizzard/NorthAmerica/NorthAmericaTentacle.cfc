@@ -1,6 +1,6 @@
-<cfcomponent displayname="NorthAmerica" output="false" extends="kathune.tentacle.Blizzard.BlizzardTentacle">
+<cfcomponent displayname="NorthAmerica" output="false" extends="tentacle.Blizzard.BlizzardTentacle">
 
-	<cffunction name="init" returntype="kathune.tentacle.Blizzard.NorthAmerica.NorthAmericaTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.Blizzard.NorthAmerica.NorthAmericaTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 
 		<cfset setThreadURL('https://us.battle.net/forums/en/wow') />

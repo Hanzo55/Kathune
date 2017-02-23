@@ -1,6 +1,6 @@
-<cfcomponent displayname="Horde" output="false" extends="kathune.tentacle.Blizzard.Europe.EuropeTentacle">
+<cfcomponent displayname="Horde" output="false" extends="tentacle.Blizzard.Europe.EuropeTentacle">
 
-	<cffunction name="init" returntype="kathune.tentacle.Blizzard.Europe.HordeTentacle" access="public" output="false">
+	<cffunction name="init" returntype="tentacle.Blizzard.Europe.HordeTentacle" access="public" output="false">
 		<cfargument name="settings" type="struct" required="true" />
 		
 		<cfset setForumURL('http://forums.wow-europe.com/board.html?forumId=9575909') />
