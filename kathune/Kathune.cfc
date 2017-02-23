@@ -531,7 +531,7 @@
 					<cfset postStruct = tentacle.fetchPostByHook( tHook ) />
 
 					<!--- sigh, run your SECOND title check --->
-					<cfif Compare(tPostTitle, postStruct.title)>
+					<cfif Len(Trim(postStruct.title)) AND Compare(tPostTitle, postStruct.title)>
 
 						<cfset failed = true />
 
@@ -1024,7 +1024,7 @@
 					<cfset postStruct = tentacle.fetchPostByHook( tHook ) />
 
 					<!--- if the titles don't match, downgrade this back to pre-scored, to be reprocessed --->
-					<cfif Compare(tPostTitle, postStruct.title)>
+					<cfif Len(Trim(postStruct.title)) AND Compare(tPostTitle, postStruct.title)>
 
 						<cfquery name="qDowngradeLink__Feed_thread#tID#" datasource="#variables.dsn#">
 							UPDATE Links
