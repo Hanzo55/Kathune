@@ -1,5 +1,6 @@
 <cfparam name="url.bodiesOnly" default="false" />
 <cfparam name="url.scoreOnly" default="false" />
+<cfparam name="url.pruneOnly" default="false" />
 <cfparam name="url.twitOnly" default="false" />
 <cfparam name="url.twitSearchOnly" default="false" />
 
@@ -14,6 +15,9 @@
     else if ( url.scoreOnly )
         // Phase 3: Examine recently spidered-forum posts that have their bodies, and rank them. A ranked post means it can be considered during search.
         request.kathune.Digest( httpFetchMaximum );
+    else if ( url.pruneOnly )
+        // Phase 4: Prune the fully scored posts for potential URL/title mismatches (for forums whose thread ids are reused *cough* Blizzard *cough*)
+        request.kathune.Torment( httpFetchMaximum );
     else if ( url.twitOnly )
         // This process Tweets about newly discovered recruits on the WoWLemming Twitter Acct.
         request.kathune.Glare();

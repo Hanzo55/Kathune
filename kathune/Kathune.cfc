@@ -10,8 +10,8 @@
 			var datasource 				= 0;
 			var tentacleArray 			= 0;
 			var tent 					= 0;
-			var settings 				= structNew();
-			var authStruct				= structNew();
+			var settings 				= StructNew();
+			var authStruct				= StructNew();
 			var i 						= 0;
 			
 			// stateful
@@ -19,8 +19,9 @@
 			variables.user_agent 		= 'Mozilla/5.0 (compatible; WoW Lemmings Kathune/2.0; http://www.wowlemmings.com/kathune.html)';
 			variables.httpFetchMaximum 	= 8; 		// maximum amount of posts to fetch from the db in an attempt to grab bodies, the higher the number, the more expensive / cpuhog like this spider becomes. this number should not go any higher than the CFADMIN thread max.
 			variables.timeout 			= 8;			
-			variables.tentacles			= arrayNew(1);
-			variables.NewRecruitQueue	= arrayNew(1);
+			variables.tentacles			= ArrayNew(1);
+			variables.NewRecruitQueue	= ArrayNew(1);
+			variables.URLPruneQueue		= ArrayNew(1);
 			variables.RecruiterSearch	= StructNew();			
 			variables.analysis			= CreateObject('component', 'AnalysisService');
 			//variables.twitter			= CreateObject('component', 'Twitter').init('USERNAME','PASSWORD');
@@ -983,50 +984,65 @@
 		<cfargument name="maxThreads" type="numeric" required="true" />
 		<cfargument name="maxRows" type="numeric" required="true" default="50" />
 		
-		<cfset var id = '' />
+		<cfset var = 0 />
+		<cfset var thisPostObj = 0 />
+		<cfset var thisName = "" />
+		<cfset var threadList = "" />
+		<cfset var i = 0 />
+		<cfset var newTentacle = 0 />
+		<cfset var newPost = 0 />
 
-		<!--- Process the bottom X most recent fully scored posts (bottom of the homepage) --->
+		<!--- torment combines the tactic used in Glare() and Thrash() by:
 
-		<cfquery name="qLinks__FetchRecentScored" datasource="#variables.dsn#" blockfactor="#arguments.maxThreads#">
-			SELECT l.*, s.SiteUUID, s.Hook
-			FROM Links l
-				INNER JOIN Sites s ON (l.PostID = s.PostID)
-			WHERE (l.PostBody <> '' AND l.PostBody IS NOT NULL)
-			AND (l.Score > 1)
-			ORDER BY l.EffectiveDate DESC
-			LIMIT #arguments.maxThreads#
-			OFFSET #Evaluate(arguments.maxRows-arguments.maxThreads)#
-		</cfquery>
+		a: looking at entries in a queue
+		b: processing them, if there are any to be processed,
+		c: emptying/draining queue
+		d: adding new entries to the queue
 
-		<cfif qLinks__FetchRecentScored.recordcount>
+		--->
 
-			<cfloop query="qLinks__FetchRecentScored">
-				
+		<cfset var max = ArrayLen(variables.URLPruneQueue) />
+
+		<cfif max GT arguments.maxThreads>
+			<cfset max = arguments.maxThreads />
+		</cfif>
+
+		<cfif max>
+
+			<!--- process another X threads --->
+			<cfloop from="1" to="#max#" index="i">
+
 				<cfset id = getTimestamp() />
+				<cfset thisPostObj = variables.URLPruneQueue[i] />
+				<cfset thisName = "__Torment_thread_" & i & "_" & id />
+				<cfset threadList = ListAppend(threadList, thisName) />
 
-				<cfthread name="__Torment_thread_#qLinks__FetchRecentScored.currentRow#_#id#"
-						  row="#qLinks__FetchRecentScored.currentRow#"
-						  tSiteUUID="#qLinks__FetchRecentScored.SiteUUID[qLinks__FetchRecentScored.currentRow]#"
-						  tHook="#qLinks__FetchRecentScored.Hook[qLinks__FetchRecentScored.currentRow]#"
-						  tPostID="#qLinks__FetchRecentScored.PostID[qLinks__FetchRecentScored.currentRow]#"
-						  tArmoryURL="#qLinks__FetchRecentScored.ArmoryURL[qLinks__FetchRecentScored.currentRow]#"
-						  tPostTitle="#qLinks__FetchRecentScored.PostTitle[qLinks__FetchRecentScored.currentRow]#"
+				<cfthread name="#thisName#"
 						  tID="#id#"
+						  row="#i#"
+						  tPost="#thisPostObj#"
 						  action="run">
 
 					<cfset var tentacle = 0 />
-					<cfset var postStruct = structNew() />
+					<cfset var postStruct = StructNew() />
 					
-					<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Feeding off of SiteUUID: #tSiteUUID#, Hook: #tHook#, PostID: #tPostID#, Post Title: #tPostTitle#">
+					<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Torment(): Running Test on PostID: #tPost.GetPostID()#, Title: #tPost.GetTitle()# (URL: #tPost.GetURL()#)">
 					
-					<cfset tentacle = getTentacleBySiteUUID( tSiteUUID ) />
+					<cfquery name="qDowngradeLink__Feed_thread" datasource="#variables.dsn#">
+						SELECT l.*, s.SiteUUID, s.Hook, l.PostTitle AS title
+						FROM Links l
+							INNER JOIN Sites s ON (l.PostID = s.PostID)
+						WHERE l.PostID = #tPost.GetPostID()#
+					</cfquery>
 
-					<cfset postStruct = tentacle.fetchPostByHook( tHook ) />
+					<cfset tentacle = getTentacleBySiteUUID( qSiteUUID__FetchByPostID.SiteUUID ) />
+
+					<cfset postStruct = tentacle.fetchPostByHook( tPost.GetHookValue() ) />
 
 					<!--- if the titles don't match, downgrade this back to pre-scored, to be reprocessed --->
-					<cfif Len(Trim(postStruct.title)) AND Compare(tPostTitle, postStruct.title)>
+					<cfif Len(Trim(postStruct.title)) AND Compare(tPost.GetTitle(), postStruct.title)>
 
-						<cfquery name="qDowngradeLink__Feed_thread#tID#" datasource="#variables.dsn#">
+						<cfquery name="qDowngradeLink__Feed_thread" datasource="#variables.dsn#">
 							UPDATE Links
 								SET PostBody = '',
 									ArmoryURL = '',
@@ -1034,11 +1050,43 @@
 							WHERE PostID = #tPostID#
 						</cfquery>
 
-						<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Torment() for Hook [#tHook#] expected title [#tPostTitle#], instead got [#postStruct.title#]. Hooks have changed, PostID:#tPostID# re-queued for reprocessing" />
+						<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Torment(): Test on PostID: #tPost.GetPostID()# failed, expected title [#tPost.GetTitle()#], got [#postStruct.title#]. Hook #tPost.GetHookValue()# has changed, requeued post for processing" />
 
 					</cfif>
 
-				</cfthread>					
+				</cfthread>
+
+			</cfloop>
+
+			<!--- join all the threads, before we clean up the array --->
+			<cfthread action="join" name="#threadList#" />
+
+			<!--- prune those processed URLs from the queue --->
+			<cfloop from="1" to="#max#" index="i">
+				<cfset ArrayDeleteAt(variables.URLPruneQueue, 1) /> <!--- we just pop the 1st row off #max# times --->
+			</cfloop>
+
+		</cfif>
+
+		<!--- finally, if the queue is completely empty, fill it back up with the latest (100) scored posts --->
+		<cfif NOT ArrayLen(variables.URLPruneQueue)>
+
+			<cfquery name="qLinks__FetchRecentScored" datasource="#variables.dsn#">
+				SELECT l.*, s.SiteUUID, s.Hook, l.PostTitle AS title
+				FROM Links l
+					INNER JOIN Sites s ON (l.PostID = s.PostID)
+				WHERE (l.PostBody <> '' AND l.PostBody IS NOT NULL)
+				AND (l.Score > 1)
+				ORDER BY l.EffectiveDate DESC
+				LIMIT 100
+			</cfquery>
+
+			<cfloop query="qLinks__FetchRecentScored">
+
+				<cfset newTentacle = getTentacleBySiteUUID( qLinks__FetchRecentScored.SiteUUID[qLinks__FetchRecentScored.CurrentRow] ) />
+				<cfset newPost = newTentacle.CreatePostObjectFromQueryRow( qLinks__FetchRecentScored, qLinks__FetchRecentScored.CurrentRow ) />
+
+				<cfset ArrayAppend(variables.URLPruneQueue, newPost) />
 
 			</cfloop>
 
