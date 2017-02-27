@@ -1026,7 +1026,7 @@
 					<cfset var tentacle = 0 />
 					<cfset var postStruct = StructNew() />
 					
-					<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Torment(): Running Test on PostID: #tPost.GetPostID()#, Title: #tPost.GetTitle()# (URL: #tPost.GetURL()#)">
+					<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Torment(): Running Test on PostID: #tPost.GetPostID()#, Title: #tPost.GetPostTitle()# (URL: #tPost.GetPostURL()#)">
 					
 					<cfquery name="qDowngradeLink__Feed_thread" datasource="#variables.dsn#">
 						SELECT l.*, s.SiteUUID, s.Hook, l.PostTitle AS title
@@ -1050,7 +1050,7 @@
 							WHERE PostID = #tPostID#
 						</cfquery>
 
-						<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Torment(): Test on PostID: #tPost.GetPostID()# failed, expected title [#tPost.GetTitle()#], got [#postStruct.title#]. Hook #tPost.GetHookValue()# has changed, requeued post for processing" />
+						<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Torment(): Test on PostID: #tPost.GetPostID()# failed, expected title [#tPost.GetPostTitle()#], got [#postStruct.title#]. Hook #tPost.GetHookValue()# has changed, requeued post for processing" />
 
 					</cfif>
 
