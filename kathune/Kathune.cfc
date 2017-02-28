@@ -1084,7 +1084,7 @@
 			<cfloop query="qLinks__FetchRecentScored">
 
 				<cfset newTentacle = getTentacleBySiteUUID( qLinks__FetchRecentScored.SiteUUID[qLinks__FetchRecentScored.CurrentRow] ) />
-				<cfset newPost = newTentacle.CreatePostObjectFromQueryRow( qLinks__FetchRecentScored, qLinks__FetchRecentScored.CurrentRow ) />
+				<cfset newPost = newTentacle.GetPost( qLinks__FetchRecentScored, qLinks__FetchRecentScored.CurrentRow ) />
 
 				<cfset ArrayAppend(variables.URLPruneQueue, newPost) />
 
@@ -1715,7 +1715,7 @@
 		</cfquery>
 
 		<cfif qPostByURL__Fetch.RecordCount EQ 1>
-			<cfset nPost = arguments.tentacle.CreatePostObjectFromQueryRow( qPostByURL__Fetch, 1 ) />
+			<cfset nPost = arguments.tentacle.GetPost( qPostByURL__Fetch ) />
 		<cfelse>
 			<cfset nPost = CreateObject('component','Post').init( ) />
 		</cfif>

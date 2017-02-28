@@ -283,12 +283,12 @@
 			<cfif isQuery(variables.postQuery) and variables.postQuery.recordcount>
 				<cfloop query="variables.postQuery">
 					<cfset postObj = CreatePostObjectFromQueryRow( variables.postQuery, variables.postQuery.currentRow ) />
-					<cfset arrayAppend(oArray, postObj ) />
+					<cfset arrayAppend( oArray, postObj ) />
 				</cfloop>
 			</cfif>
 
 		</cflock>
-		
+
 		<cfreturn oArray />
 	</cffunction>
 	
@@ -298,10 +298,17 @@
 		
 		<cfset var postObject = 0 />
 		<cfset var scoredStruct = 0 />
-		
+
 		<!--- the plan is to:
 		1. do generic scoring first
-		2. touch up any tentacle-specific scoring in the derived class via polymorphism --->
+		2. touch up any tentacle-specific scoring in the derived class via polymorphism
+		--->
+
+		<!--- NOTE: DO **NOT** USE THIS TO CONVERT A TRUE SQL ROW INTO A POST OBJECT!! THIS IS ONLY FOR TURNING PARSED FORUM
+		DATA QUERY ROWS (TITLE,HOOK) INTO POST OBJECTS.
+
+		USE GETPOST INSTEAD!!!!
+		--->
 		
 		<cfset postObject 	= CreateObject('component', 'Post') />
 
@@ -327,6 +334,23 @@
 
 			<!--- <cflog file="Kathune" type="information" text="CreatePostObjectFromQueryRow(#arguments.dataQuery.title[arguments.row]#): setPostURL() Fired - URL is: #postObject.getPostURL()#" /> --->
 	
+		<cfreturn postObject />
+	</cffunction>
+
+	<cffunction name="GetPost" returntype="Post" access="public" output="false">
+		<cfargument name="dataQuery" type="query" required="true" />
+		<cfargument name="row" type="numeric" required="false" default="1" />
+
+		<cfset var thisCol = 0 />
+		<cfset var dataStruct = StructNew() />
+		<cfset var postObject = CreateObject('component', 'Post') />
+
+		<cfloop list="#arguments.dataQuery.columnList#" item="thisCol">
+			<cfset StructInsert( dataStruct, '#thisCol#', arguments.dataQuery[#thisCol#][arguments.row] ) />
+		</cfloop>
+
+		<cfset postObject.init( argumentCollection=dataStruct ) />
+
 		<cfreturn postObject />
 	</cffunction>
 	
