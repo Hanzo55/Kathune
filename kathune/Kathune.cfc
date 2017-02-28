@@ -1040,7 +1040,7 @@
 					<cfset postStruct = tentacle.fetchPostByHook( tPost.GetHookValue() ) />
 
 					<!--- if the titles don't match, downgrade this back to pre-scored, to be reprocessed --->
-					<cfif Len(Trim(postStruct.title)) AND Compare(tPost.GetTitle(), postStruct.title)>
+					<cfif Len(Trim(postStruct.title)) AND Compare(tPost.GetPostTitle(), postStruct.title)>
 
 						<cfquery name="qDowngradeLink__Feed_thread" datasource="#variables.dsn#">
 							UPDATE Links
