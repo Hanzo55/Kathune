@@ -1035,7 +1035,7 @@
 						WHERE l.PostID = #tPost.GetPostID()#
 					</cfquery>
 
-					<cfset tentacle = getTentacleBySiteUUID( qSiteUUID__FetchByPostID.SiteUUID ) />
+					<cfset tentacle = getTentacleBySiteUUID( qDowngradeLink__Feed_thread.SiteUUID ) />
 
 					<cfset postStruct = tentacle.fetchPostByHook( tPost.GetHookValue() ) />
 
