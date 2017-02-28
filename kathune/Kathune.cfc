@@ -1499,6 +1499,8 @@
 							so assume the old post is gone-zo, and we'll update our local DB to the new post --->
 
 							<!--- this update will automatically set the score back to 1 and the body to '', for re-processing --->
+							<cftry>
+
 							<cfquery name="qUpdate" datasource="#variables.dsn#">
 								update Links
 								set PostTitle = '#thisPostObj.getPostTitle()#', 
@@ -1527,6 +1529,37 @@
 							</cfquery>
 
 							<cflog file="Kathune" type="information" text="Post URL #oldPost.GetPostURL()# (title: [#oldPost.GetPostTitle()#]) no longer in existence, UPDATED (replaced by) title [#thisPostObj.GetPostTitle()#] - PKEY: #oldPost.getPostID()# - SiteUUID: #arguments.tentacle.getSiteUUID()# - Hook: #thisPostObj.getHookValue()#">
+
+								<cfcatch type="any">
+
+									<cflog file="Kathune" type="information" text="I didn't like SQL: update Links
+								set PostTitle = '#thisPostObj.getPostTitle()#', 
+									PostBody = '',
+									isAlliance = #thisPostObj.isAlliance()#,
+									isHorde = #thisPostObj.isHorde()#,
+									isPvP = #thisPostObj.isPvP()#,
+									isPvE = #thisPostObj.isPvE()#,
+									isIdiot = #thisPostObj.isIdiot()#,
+									isDeathKnight = #thisPostObj.isDeathKnight()#,
+									isDemonHunter = #thisPostObj.isDemonHunter()#,
+									isDruid = #thisPostObj.isDruid()#,
+									isHunter = #thisPostObj.isHunter()#,
+									isMage = #thisPostObj.isMage()#,
+									isMonk = #thisPostObj.isMonk()#,
+									isPaladin = #thisPostObj.isPaladin()#,
+									isPriest = #thisPostObj.isPriest()#,
+									isRogue = #thisPostObj.isRogue()#,
+									isShaman = #thisPostObj.isShaman()#,
+									isWarlock #thisPostObj.isWarlock()#,
+									isWarrior = #thisPostObj.isWarrior()#,
+									Score = 1,
+									Region = '#thisPostObj.getRegion()#',
+									ArmoryURL = '#thisPostObj.getArmoryURL()#'
+								where PostID = #oldPost.getPostID()#;">
+								
+								</cfcatch>
+
+							</cftry>
 
 						<cfelse>
 
@@ -1916,7 +1949,7 @@
 				AND Region = 'EU-EN'
 			</cfif>
 			<cfif len(trim(arguments.keyword))>
-				AND (PostTitle ILIKE '%#trim(arguments.keyword)#%' OR to_tsvector('english', PostBody) @@ to_tsquery('english','#trim(arguments.keyword)#'))
+				AND (PostTitle ILIKE '%#trim(arguments.keyword)#%' OR to_tsvector('english', PostBody) @@ to_tsquery('english','#trim(ListChangeDelims(arguments.keyword, ' & ', ' '))#'))
 			</cfif>
 				AND Score > 1
 		</cfquery>
@@ -1987,7 +2020,7 @@
 					AND Region = 'EU-EN'
 				</cfif>
 				<cfif len(trim(arguments.keyword))>
-					AND (PostTitle ILIKE '%#trim(arguments.keyword)#%' OR to_tsvector('english', PostBody) @@ to_tsquery('english','#trim(arguments.keyword)#'))
+					AND (PostTitle ILIKE '%#trim(arguments.keyword)#%' OR to_tsvector('english', PostBody) @@ to_tsquery('english','#trim(ListChangeDelims(arguments.keyword, ' & ', ' '))#'))
 				</cfif>
 				AND Score > 1
 			)
