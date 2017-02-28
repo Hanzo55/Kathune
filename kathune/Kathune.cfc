@@ -1047,7 +1047,7 @@
 								SET PostBody = '',
 									ArmoryURL = '',
 									Score = 1
-							WHERE PostID = #tPostID#
+							WHERE PostID = #tPost.GetPostID()#
 						</cfquery>
 
 						<cflog file="Kathune" type="information" text="__Torment_thread_#row#_#tID# - Torment(): Test on PostID: #tPost.GetPostID()# failed, expected title [#tPost.GetPostTitle()#], got [#postStruct.title#]. Hook #tPost.GetHookValue()# has changed, requeued post for processing" />
@@ -1521,7 +1521,7 @@
 									isWarlock #thisPostObj.isWarlock()#,
 									isWarrior = #thisPostObj.isWarrior()#,
 									Score = 1,
-									Region = #thisPostObj.getRegion()#,
+									Region = '#thisPostObj.getRegion()#',
 									ArmoryURL = '#thisPostObj.getArmoryURL()#'
 								where PostID = #oldPost.getPostID()#;
 							</cfquery>
