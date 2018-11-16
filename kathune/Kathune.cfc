@@ -532,7 +532,7 @@
 					<cfset postStruct = tentacle.fetchPostByHook( tHook ) />
 
 					<!--- sigh, run your SECOND title check --->
-					<cfif Len(Trim(postStruct.title)) AND Compare(tPostTitle, postStruct.title)>
+					<cfif Len(Trim(postStruct.title)) AND Compare(tPostTitle, DecodeForHTML(postStruct.title))>
 
 						<cfset failed = true />
 
