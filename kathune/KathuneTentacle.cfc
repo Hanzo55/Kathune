@@ -214,7 +214,7 @@
 
 		NOTE: ALL old tentacles that derive will have to be updated in order for this to work 
 		--->
-		
+		<cflog file="Kathune" type="information" text="KathuneTentacle:fetchPostByHook(): attempting to HTTP GET #getThreadByHook(arguments.hook)#" />
 		
 			<cfhttp method="get" url="#getThreadByHook(arguments.hook)#" timeout="#variables.timeout#" resolveurl="false" result="httpVar" throwOnError="true">
 			
