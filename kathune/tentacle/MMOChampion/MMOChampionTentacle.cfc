@@ -13,7 +13,7 @@
 		<!--- this is an abstract base class which contains shared parsing rules for blizzard-forums in general. should not be instanced. --->
 		<cfset setHook('threads')>
 		<cfset setThreadURL('http://www.mmo-champion.com') />		
-		<cfset setLinkRegularExpression('<a class="title" href="threads/([^"]+)" id="[^"]+">([^<]+)<\/a>') />
+		<cfset setLinkRegularExpression('<a class="title" href="threads\/([^"]+)" id="[^"]+">(.+?)<\/a>') />
 		<cfset setTitleRegularExpression('<span class="threadtitle"><a href="[^"]+" title="Reload this Page">(.+?)<\/a><\/span>') />
 		<cfset setBodyRegularExpression('<div id="post_message_[0-9]+">\s+(?:<blockquote class="postcontent restore ">)([\s\S]+?)(?:<\/blockquote>)') />
 

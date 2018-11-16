@@ -147,22 +147,22 @@
 		as we break the page down, we'll shrink this string until there is nothing left to work with --->
 		
 		<cfset httpContent = arguments.html />
-		
+
 		<cfset start = getTickCount() />
 		
 		<cfset linkArray = REMatch( getLinkRegularExpression(), httpContent ) />
-		
+
 		<cfloop from="1" to="#ArrayLen(linkArray)#" index="i">
 			<cfset token = ExtractTitleAndHookFromLink( linkArray[i] ) />
 
 			<cfset QueryAddRow( mQuery ) />
 
-			<cfset QuerySetCell( mQuery, 'title', urldecode(token.title) ) />
+			<cfset QuerySetCell( mQuery, 'title', DecodeForHTML(token.title) ) />
 			<cfset QuerySetCell( mQuery, 'hook', token.hook ) />
-		</cfloop>		
+		</cfloop>
 		
 		<cfset end = getTickCount() />
-		
+
 		<!--- <cflog file="Kathune" text="KathuneTentacle::getForumPostQueryFromHTML() - time: #evaluate(end-start)#" type="information"> --->
 		
 		<cfreturn mQuery />		
@@ -204,8 +204,6 @@
 
 			postData.title 		= '';
 			postData.body 		= '';
-
-
 		</cfscript>
 
 		<!--- Between 2008 (wowlemmings inception) and 2016, this method returned a string: the body of the first post of the actual recruitment
@@ -217,7 +215,7 @@
 		NOTE: ALL old tentacles that derive will have to be updated in order for this to work 
 		--->
 		
-		<cftry>
+		
 			<cfhttp method="get" url="#getThreadByHook(arguments.hook)#" timeout="#variables.timeout#" resolveurl="false" result="httpVar" throwOnError="true">
 			
 			<!--- we store it locally now in case we need to debug the regular expression via getBodyHTML() --->
@@ -240,9 +238,11 @@
 
 				<cfset cleaned = trim( ReReplace( postTitle[1], getTitleRegularExpression(), '\1', 'ONE' ) ) />
 
-				<cfset cleaned = URLDecode( cleaned ) />
+				<!--- <cfset cleaned = URLDecode( cleaned ) />
+				<cfdump var=#cleaned#>--->
 
-				<cfset cleaned = replace( cleaned, "'", "''", "ALL" ) />
+				<!--- <cfset cleaned = replace( cleaned, "'", "''", "ALL" ) />
+				<cfdump var="#cleaned#"> --->
 
 				<cfset postData.title = cleaned />
 
@@ -252,22 +252,16 @@
 				<cfset postData.body = trim( ReReplace( postBody[1], getBodyRegularExpression(), '\1', 'ONE' ) ) />	<!--- the first match will be the person's post, anything else are people responding to his post --->
 
 			</cfif>
-			
-			<cfcatch type="any">
-				<cflog file="Kathune" type="information" text="fetchPostByHook() - Failed on #getThreadByHook(arguments.hook)#: #cfcatch.message# - #cfcatch.detail#" />
-				<cfreturn postData />
-			</cfcatch>
-		</cftry>
-		
+
 		<cfreturn postData />		
 	</cffunction>		
 	
-	<cffunction name="ExtractTitleAndHookFromLink" returntype="struct" access="public" output="false">
+	<cffunction name="ExtractTitleAndHookFromLink" returntype="struct" access="public" output="true">
 		<cfargument name="link" type="string" required="true">
 		
 		<cfset var data = structNew() />
-		<cfset var tokenized = ReReplaceNoCase( arguments.link, getLinkRegularExpression(), '\#getHookPosition()#;=;\#getTitlePosition()#', 'ONE' ) />
-		
+		<cfset var tokenized = ReReplaceNoCase( DecodeForHTML(arguments.link), getLinkRegularExpression(), '\#getHookPosition()#;=;\#getTitlePosition()#', 'ONE' ) />
+
 		<cfset data.title = ListGetAt(tokenized, getTitlePosition(), ';=;' ) />
 		<cfset data.hook = ListGetAt(tokenized, getHookPosition(), ';=;' ) />
 
@@ -322,7 +316,7 @@
 		
 		<cfset postObject.setSource( getSource() ) />
 		
-		<cfset postObject.setPostTitle( replace(arguments.dataQuery.title[arguments.row],"'","''","ALL") ) />
+		<cfset postObject.setPostTitle( arguments.dataQuery.title[arguments.row] ) />
 
 			<!--- <cflog file="Kathune" type="information" text="CreatePostObjectFromQueryRow(#arguments.dataQuery.title[arguments.row]#): setPostTitle() Fired - Title Output is: #postObject.getPostTitle()#" /> --->
 
@@ -333,7 +327,7 @@
 		<cfset postObject.setPostURL( getThreadByHook( postObject.getHookValue() ) ) />
 
 			<!--- <cflog file="Kathune" type="information" text="CreatePostObjectFromQueryRow(#arguments.dataQuery.title[arguments.row]#): setPostURL() Fired - URL is: #postObject.getPostURL()#" /> --->
-	
+
 		<cfreturn postObject />
 	</cffunction>
 
@@ -412,34 +406,40 @@
 			<cfset dbDomain = 'US'>
 		</cfif>
 		
-		<cfquery name="qryServers" datasource="#variables.dsn#" cachedwithin="#createTimeSpan(0,8,0,0)#">
-			SELECT ServerName, ServerRegExp, ServerType
-			FROM Servers
-			WHERE Region = '#dbDomain#'
-			ORDER BY ServerName
-		</cfquery>
-		
-		<cfloop query="qryServers">
-			<cfif findNoCase(qryServers.ServerName[qryServers.currentRow], arguments.txt) OR 
-					( len(qryServers.ServerRegExp[qryServers.currentRow]) and reFindNoCase(qryServers.ServerRegExp[qryServers.currentRow], arguments.txt) )>
-				<!--- server name found! flag the type appropriately --->
-				
-				<!--- check exclusions first --->
-				<cfif reFindNoCase(exclusions, arguments.txt)>
-					<!--- sorry, i can't tell if it's a server name or if you're talking about your personal raid progression...END-OF-LINE --->
-					<cfbreak />
+		<cftry>
+			<cfquery name="qryServers" datasource="#variables.dsn#" cachedwithin="#createTimeSpan(0,8,0,0)#">
+				SELECT ServerName, ServerRegExp, ServerType
+				FROM Servers
+				WHERE Region = '#dbDomain#'
+				ORDER BY ServerName
+			</cfquery>
+			
+			<cfloop query="qryServers">
+				<cfif findNoCase(qryServers.ServerName[qryServers.currentRow], arguments.txt) OR 
+						( len(qryServers.ServerRegExp[qryServers.currentRow]) and reFindNoCase(qryServers.ServerRegExp[qryServers.currentRow], arguments.txt) )>
+					<!--- server name found! flag the type appropriately --->
+					
+					<!--- check exclusions first --->
+					<cfif reFindNoCase(exclusions, arguments.txt)>
+						<!--- sorry, i can't tell if it's a server name or if you're talking about your personal raid progression...END-OF-LINE --->
+						<cfbreak />
+					</cfif>
+					
+					<!--- ELSE, we have a winner, so use the lookup and flag appropriately --->
+					<cfif find("PvP", ServerType[qryServers.currentRow])>
+						<cfset data.isPvP = 1>
+					<cfelse>
+						<cfset data.isPvE = 1>
+					</cfif>
+					
+					<cfbreak /> <!--- cut out of the loop now to save cycles --->
 				</cfif>
-				
-				<!--- ELSE, we have a winner, so use the lookup and flag appropriately --->
-				<cfif find("PvP", ServerType[qryServers.currentRow])>
-					<cfset data.isPvP = 1>
-				<cfelse>
-					<cfset data.isPvE = 1>
-				</cfif>
-				
-				<cfbreak /> <!--- cut out of the loop now to save cycles --->
-			</cfif>
-		</cfloop>
+			</cfloop>
+
+			<cfcatch type="any">
+				<cflog file="Kathune" type="warning" text="KathuneTentacle.getServerTypeFromTitleByRegion() - Server Type lookup failed due to a lack of a datasource [#variables.dsn#]" />
+			</cfcatch>
+		</cftry>
 		
 		<cfreturn data />		
 	</cffunction>

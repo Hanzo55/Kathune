@@ -17,7 +17,7 @@
 
         <cfif ( NOT this.isDev AND NOT IsDefined( 'application.kathune' ) ) OR ( IsDefined( 'url.reinit' ) )>
             <cflock name="AppInit" timeout="30" type="exclusive">
-                <cfset application.kathune = CreateObject( 'component','kathune.Kathune' ).init( '/config.xml' ) />
+                <cfset application.kathune = CreateObject( 'component','kathune.Kathune' ).init( '/demo/config.xml' ) />
             </cflock>
             <cfif IsDefined( 'url.reinit' )>
                 <cfobjectcache action="clear" />

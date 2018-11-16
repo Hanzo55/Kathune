@@ -32,15 +32,15 @@
 			variables.screen_name 		= '';
 			variables.user_id 			= '';
 			
-			variables.twitter			= CreateObject('component', 'monkehTweets.com.coldfumonkeh.monkehTweet')
-				.init(
-					consumerKey			=	'CONSUMERKEY',
-					consumerSecret		=	'CONSUMERSECRET',
-					oauthToken			=	'OAUTHTOKEN',
-					oauthTokenSecret	= 	'OAUTHTOKENSECRET',
-					userAccountName		= 	'WoWLemming',
-					parseResults		=	true
-				);
+			// variables.twitter			= CreateObject('component', 'monkehTweets.com.coldfumonkeh.monkehTweet')
+			// 	.init(
+			// 		consumerKey			=	'CONSUMERKEY',
+			// 		consumerSecret		=	'CONSUMERSECRET',
+			// 		oauthToken			=	'OAUTHTOKEN',
+			// 		oauthTokenSecret	= 	'OAUTHTOKENSECRET',
+			// 		userAccountName		= 	'WoWLemming',
+			// 		parseResults		=	true
+			// 	);
 			
 			/*	
 			authStruct = variables.twitter.getAuthorisation(callbackURL='http://www.wowlemmings.com/authorize.cfm');
@@ -2120,34 +2120,40 @@
 			<cfset dbDomain = 'US'>
 		</cfif>
 		
-		<cfquery name="qryServers" datasource="#variables.dsn#" cachedwithin="#createTimeSpan(0,8,0,0)#">
-			SELECT ServerName, ServerRegExp, ServerType
-			FROM Servers
-			WHERE Region = '#dbDomain#'
-			ORDER BY ServerName
-		</cfquery>
-		
-		<cfloop query="qryServers">
-			<cfif findNoCase(qryServers.ServerName[qryServers.currentRow], arguments.txt) OR 
-					( len(qryServers.ServerRegExp[qryServers.currentRow]) and reFindNoCase(qryServers.ServerRegExp[qryServers.currentRow], arguments.txt) )>
-				<!--- server name found! flag the type appropriately --->
-				
-				<!--- check exclusions first --->
-				<cfif reFindNoCase(exclusions, arguments.txt)>
-					<!--- sorry, i can't tell if it's a server name or if you're talking about your personal raid progression...END-OF-LINE --->
-					<cfbreak />
+		<cftry>
+			<cfquery name="qryServers" datasource="#variables.dsn#" cachedwithin="#createTimeSpan(0,8,0,0)#">
+				SELECT ServerName, ServerRegExp, ServerType
+				FROM Servers
+				WHERE Region = '#dbDomain#'
+				ORDER BY ServerName
+			</cfquery>
+			
+			<cfloop query="qryServers">
+				<cfif findNoCase(qryServers.ServerName[qryServers.currentRow], arguments.txt) OR 
+						( len(qryServers.ServerRegExp[qryServers.currentRow]) and reFindNoCase(qryServers.ServerRegExp[qryServers.currentRow], arguments.txt) )>
+					<!--- server name found! flag the type appropriately --->
+					
+					<!--- check exclusions first --->
+					<cfif reFindNoCase(exclusions, arguments.txt)>
+						<!--- sorry, i can't tell if it's a server name or if you're talking about your personal raid progression...END-OF-LINE --->
+						<cfbreak />
+					</cfif>
+					
+					<!--- ELSE, we have a winner, so use the lookup and flag appropriately --->
+					<cfif find("PvP", ServerType[qryServers.currentRow])>
+						<cfset data.isPvP = 1>
+					<cfelse>
+						<cfset data.isPvE = 1>
+					</cfif>
+					
+					<cfbreak /> <!--- cut out of the loop now to save cycles --->
 				</cfif>
-				
-				<!--- ELSE, we have a winner, so use the lookup and flag appropriately --->
-				<cfif find("PvP", ServerType[qryServers.currentRow])>
-					<cfset data.isPvP = 1>
-				<cfelse>
-					<cfset data.isPvE = 1>
-				</cfif>
-				
-				<cfbreak /> <!--- cut out of the loop now to save cycles --->
-			</cfif>
-		</cfloop>
+			</cfloop>
+
+			<cfcatch type="any">
+				<cflog file="Kathune" type="warning" text="Kathune.getServerTypeFromTitleByRegion() - Server Type lookup failed due to a lack of a datasource [#variables.dsn#]" />
+			</cfcatch>
+		</cftry>
 		
 		<cfreturn data />		
 	</cffunction>	
