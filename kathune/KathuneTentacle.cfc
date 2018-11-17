@@ -215,26 +215,28 @@
 		NOTE: ALL old tentacles that derive will have to be updated in order for this to work 
 		--->
 		<cflog file="Kathune" type="information" text="KathuneTentacle:fetchPostByHook(): attempting to HTTP GET #getThreadByHook(arguments.hook)#" />
+
+		<cfhttp method="get" url="#getThreadByHook(arguments.hook)#" timeout="#variables.timeout#" resolveurl="false" result="httpVar" throwOnError="true">
 		
-			<cfhttp method="get" url="#getThreadByHook(arguments.hook)#" timeout="#variables.timeout#" resolveurl="false" result="httpVar" throwOnError="true">
-			
-			<!--- we store it locally now in case we need to debug the regular expression via getBodyHTML() --->
-			<cfset variables.bodyHTML = httpVar.fileContent />
+		<!--- we store it locally now in case we need to debug the regular expression via getBodyHTML() --->
+		<cfset variables.bodyHTML = httpVar.fileContent />
 
-			<cfif variables.bodyHTML is "Connection Failure">
-				<cfreturn postData />
-			</cfif>
+		<cfif variables.bodyHTML is "Connection Failure">
+			<cfreturn postData />
+		</cfif>
 
-			<!--- now parsed html must both successfully pull a title and a body --->
-			<cfif not REFindNoCase( getTitleRegularExpression(), variables.bodyHTML ) and not REFindNoCase( getBodyRegularExpression(), variables.bodyHTML )>
-				<cfreturn postData />
-			</cfif>
-						
-			<!--- the parsing is so trivial, let's just do it in this method --->
-			<cfif len( variables.bodyHTML )>
+		<!--- now parsed html must both successfully pull a title and a body --->
+		<cfif not REFindNoCase( getTitleRegularExpression(), variables.bodyHTML ) and not REFindNoCase( getBodyRegularExpression(), variables.bodyHTML )>
+			<cfreturn postData />
+		</cfif>
+					
+		<!--- the parsing is so trivial, let's just do it in this method --->
+		<cfif len( variables.bodyHTML )>
 
-				<!--- 1. TITLE --->
-				<cfset postTitle = ReMatch( getTitleRegularExpression(), variables.bodyHTML ) />
+			<!--- 1. TITLE --->
+			<cfset postTitle = ReMatch( getTitleRegularExpression(), variables.bodyHTML ) />
+
+			<cfif ArrayLen(postTitle)>
 
 				<cfset cleaned = trim( ReReplace( postTitle[1], getTitleRegularExpression(), '\1', 'ONE' ) ) />
 
@@ -246,16 +248,30 @@
 
 				<cfset postData.title = cleaned />
 
-				<!--- 2. BODY --->
-				<cfset postBody = ReMatch( getBodyRegularExpression(), variables.bodyHTML ) />
+			<cfelse>
 
-				<cfset postData.body = trim( ReReplace( postBody[1], getBodyRegularExpression(), '\1', 'ONE' ) ) />	<!--- the first match will be the person's post, anything else are people responding to his post --->
+				<cflog file="Kathune" type="error" text="KathuneTentacle:fetchPostByHook(): postTitle cannnot be parsed out of variables.bodyHTML from getTitleRegularExpression()" />
 
 			</cfif>
 
-		<cfreturn postData />		
-	</cffunction>		
-	
+			<!--- 2. BODY --->
+			<cfset postBody = ReMatch( getBodyRegularExpression(), variables.bodyHTML ) />
+
+			<cfif ArrayLen(postBody)>
+
+				<cfset postData.body = trim( ReReplace( postBody[1], getBodyRegularExpression(), '\1', 'ONE' ) ) />	<!--- the first match will be the person's post, anything else are people responding to his post --->
+
+			<cfelse>
+
+				<cflog file="Kathune" type="error" text="KathuneTentacle:fetchPostByHook(): postBody cannnot be parsed out of variables.bodyHTML from getBodyRegularExpression()" />
+
+			</cfif>
+
+		</cfif>
+
+		<cfreturn postData />
+	</cffunction>
+
 	<cffunction name="ExtractTitleAndHookFromLink" returntype="struct" access="public" output="true">
 		<cfargument name="link" type="string" required="true">
 		

@@ -1091,8 +1091,8 @@
 			</cfloop>
 
 		</cfif>
-	</cffunction>	
-	
+	</cffunction>
+
 	<cffunction name="Boast" returntype="void" output="false" access="public"
 				hint="I update historical data when appropriate. You will betray your friends.">
 		<cfscript>
