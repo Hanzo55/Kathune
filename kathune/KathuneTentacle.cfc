@@ -250,7 +250,7 @@
 
 			<cfelse>
 
-				<cflog file="Kathune" type="error" text="KathuneTentacle:fetchPostByHook(): postTitle cannnot be parsed out of variables.bodyHTML from getTitleRegularExpression()" />
+				<cflog file="Kathune" type="error" text="KathuneTentacle:fetchPostByHook(): postTitle cannnot be parsed out of variables.bodyHTML (#getThreadByHook(arguments.hook)#) from getTitleRegularExpression()" />
 
 			</cfif>
 
@@ -263,7 +263,7 @@
 
 			<cfelse>
 
-				<cflog file="Kathune" type="error" text="KathuneTentacle:fetchPostByHook(): postBody cannnot be parsed out of variables.bodyHTML from getBodyRegularExpression()" />
+				<cflog file="Kathune" type="error" text="KathuneTentacle:fetchPostByHook(): postBody cannnot be parsed out of variables.bodyHTML (#getThreadByHook(arguments.hook)#) from getBodyRegularExpression()" />
 
 			</cfif>
 
