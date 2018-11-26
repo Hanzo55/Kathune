@@ -4,13 +4,13 @@
 		<cfargument name="settings" type="struct" required="true" />
 
 		<cfset setThreadURL('https://us.forums.blizzard.com/en/wow') />
-		
+
 		<cfset setForumURL('https://us.forums.blizzard.com/en/wow/c/recruitment/guild-recruitment') />
-		
-		<cfset setSource('World of Warcraft -> Forums -> Recruitment -> Guild Recruitment') />		
-		
+
+		<cfset setSource('World of Warcraft -> Forums -> Recruitment -> Guild Recruitment') />
+
 		<cfset setRegion('US') />
-		
+
 		<cfreturn super.init(arguments.settings) />
 	</cffunction>
 
@@ -22,7 +22,7 @@
 		<cfscript>
 		// ******************
 		// ** PASS No. 1   ** Can we insta-ban this title and save some cpu cycles?
-		// ******************				
+		// ******************
 		if ( canBanText(arguments.txt) )
 			return dataStruct;
 		
@@ -33,7 +33,7 @@
 		if ( !dataStruct.score )
 			return dataStruct;
 			
-		dataStruct.region = getRegion();			
+		dataStruct.region = getRegion();
 		
 		// ******************
 		// ** PASS No. 3   ** Determing the person's class. note that the struct is passed by reference
@@ -53,6 +53,6 @@
 		</cfscript>
 		
 		<cfreturn dataStruct />
-	</cffunction>		
+	</cffunction>
 	
 </cfcomponent>

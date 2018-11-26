@@ -20,7 +20,8 @@
 		<cfset setTitleRegularExpression('<meta property="og:title" content="([^"]+)" \/>') />
 
 		<!--- the Body returns 1 backreference: the body of the post --->
-		<cfset setBodyRegularExpression("<div class='post' itemprop='articleBody'>((.|\n|\s+)+?)<\/div>") />
+		<!--- <cfset setBodyRegularExpression("<div class='post' itemprop='articleBody'>((.|\n|\s+)+?)<\/div>") /> --->
+		<cfset setBodyRegularExpression("<div class='post' itemprop='articleBody'>(.+?)<\/div>") />
 
 		<cfreturn super.init(arguments.settings) />
 	</cffunction>
